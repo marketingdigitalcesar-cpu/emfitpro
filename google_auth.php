@@ -1,9 +1,9 @@
 <?php
 require 'config.php';
 
-// CONFIGURACIÓN REAL DE GOOGLE
-define('GOOGLE_CLIENT_ID', '263595625424-fo2fprj8q12k0hparf7k5t6n5kdkt8lm.apps.googleusercontent.com');
-define('GOOGLE_CLIENT_SECRET', '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');
+// CONFIGURACIÓN DE GOOGLE (Cargada desde variables de entorno por seguridad)
+define('GOOGLE_CLIENT_ID', getenv('GOOGLE_CLIENT_ID') ?: '263595625424-fo2fprj8q12k0hparf7k5t6n5kdkt8lm.apps.googleusercontent.com');
+define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: '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');
 // Determinar la URL base automáticamente (localhost o dominio real)
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
 $host = $_SERVER['HTTP_HOST'];
