@@ -1,8 +1,8 @@
 RewriteEngine On
 
-# 1. Forzar HTTPS
-RewriteCond %{HTTPS} off
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# 1. Forzar HTTPS (Desactivado para Easypanel)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # 2. Prevenir listado de directorios
 Options -Indexes
