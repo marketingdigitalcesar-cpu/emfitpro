@@ -1,0 +1,14 @@
+RewriteEngine On
+
+# 1. Forzar HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# 2. Prevenir listado de directorios
+Options -Indexes
+
+# 3. Opcional: Quitar extensión .php de la URL
+# Si quieres entrar a /register en vez de /register.php
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.php -f
+RewriteRule ^([^\.]+)$ $1.php [NC,L]
