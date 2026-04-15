@@ -1,4 +1,5 @@
-// config.php modificado para Easypanel/Docker
+<?php
+// config.php - v2.0 - Actualizado: 2026-04-14
 session_start();
 
 $db_host = getenv('DB_HOST') ?: 'localhost';
