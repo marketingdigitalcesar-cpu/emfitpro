@@ -1,5 +1,5 @@
 <?php
-require 'config.php';
+require_once 'config.php';
 
 // CONFIGURACIÓN DE GOOGLE (Cargada desde variables de entorno por seguridad)
 define('GOOGLE_CLIENT_ID', getenv('GOOGLE_CLIENT_ID') ?: '263595625424-fo2fprj8q12k0hparf7k5t6n5kdkt8lm.apps.googleusercontent.com');

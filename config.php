@@ -19,28 +19,32 @@ define('STRIPE_SECRET_KEY', 'sk_test_..._aqui');
 define('N8N_WEBHOOK_URL', 'https://n8n.tu-instancia.com/webhook/rutina-personalizada');
 
 // Función para verificar suscripción
-function checkUserPlan($userId) {
-    global $conn;
-    $sql = "SELECT plan, plan_expires FROM users WHERE id = $userId";
-    $result = $conn->query($sql);
-    $user = $result->fetch_assoc();
-    
-    if ($user['plan'] == 'pro' && strtotime($user['plan_expires']) > time()) {
-        return 'pro';
+if (!function_exists('checkUserPlan')) {
+    function checkUserPlan($userId) {
+        global $conn;
+        $sql = "SELECT plan, plan_expires FROM users WHERE id = $userId";
+        $result = $conn->query($sql);
+        $user = $result->fetch_assoc();
+        
+        if ($user['plan'] == 'pro' && strtotime($user['plan_expires']) > time()) {
+            return 'pro';
+        }
+        return 'gratis';
     }
-    return 'gratis';
 }
 
-// Función para enviar a n8n (Opcional si prefieres procesar ahí)
-function triggerN8NWorkout($data) {
-    $options = [
-        'http' => [
-            'header'  => "Content-type: application/json\r\n",
-            'method'  => 'POST',
-            'content' => json_encode($data),
-        ],
-    ];
-    $context  = stream_context_create($options);
-    return file_get_contents(N8N_WEBHOOK_URL, false, $context);
+// Función para enviar a n8n
+if (!function_exists('triggerN8NWorkout')) {
+    function triggerN8NWorkout($data) {
+        $options = [
+            'http' => [
+                'header'  => "Content-type: application/json\r\n",
+                'method'  => 'POST',
+                'content' => json_encode($data),
+            ],
+        ];
+        $context  = stream_context_create($options);
+        return @file_get_contents(N8N_WEBHOOK_URL, false, $context);
+    }
 }
 ?>
