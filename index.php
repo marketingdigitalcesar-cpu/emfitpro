@@ -1,21 +1,168 @@
 <?php
 require_once 'config.php';
+require_once 'google_auth.php';
 
-// Verificamos si el usuario tiene sesión activa
-if (!isset($_SESSION['user_id'])) {
-    // Si no tiene sesión, lo mandamos al registro
-    header("Location: register.php");
-    exit();
+// --- LÓGICA DE REGISTRO DIRECTO ---
+$error = "";
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
+    $email = $_POST['email'];
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $name = $_POST['name'];
+
+    // Verificar si el email ya existe
+    $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
+    $check->bind_param("s", $email);
+    $check->execute();
+    if ($check->get_result()->num_rows > 0) {
+        $error = "Ese correo ya está registrado.";
+    } else {
+        $stmt = $conn->prepare("INSERT INTO users (name, email, password, plan, plan_expires) VALUES (?, ?, ?, 'pro', DATE_ADD(NOW(), INTERVAL 10 DAY))");
+        $stmt->bind_param("sss", $name, $email, $password);
+
+        if ($stmt->execute()) {
+            $_SESSION['user_id'] = $stmt->insert_id;
+            header("Location: complete_profile.php");
+            exit();
+        } else {
+            $error = "Error al crear la cuenta.";
+        }
+    }
 }
 
-// Si llega aquí, es porque tiene sesión. Mostramos el contenido de la app.
+// --- SI NO HAY SESIÓN, MOSTRAR LANDING "ESTILO FACEBOOK" ---
+if (!isset($_SESSION['user_id'])):
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>emfitpro | Transforma tu vida hoy</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Outfit', sans-serif; background: #000; overflow: hidden; }
+        .split-screen { display: flex; height: 100vh; width: 100vw; }
+        
+        /* Lado Izquierdo - Marketing */
+        .left-side {
+            flex: 1.2;
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=1500');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 8%;
+            color: white;
+        }
+        .left-side h1 { font-size: 64px; margin-bottom: 10px; line-height: 1.1; font-weight: 700; }
+        .left-side h1 span { color: var(--accent-color); }
+        .left-side p { font-size: 20px; color: #ccc; max-width: 500px; line-height: 1.6; }
+
+        /* Lado Derecho - Formulario */
+        .right-side {
+            flex: 1;
+            background: #0f0f0f;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+        .register-container { width: 100%; max-width: 400px; }
+        .register-card { background: #1a1a1a; padding: 40px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); }
+        
+        input { 
+            width: 100%; padding: 16px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #333; 
+            background: #000; color: white; font-size: 16px; box-sizing: border-box; transition: 0.3s;
+        }
+        input:focus { border-color: var(--accent-color); outline: none; background: #050505; }
+        
+        .btn-register { 
+            width: 100%; padding: 16px; background: var(--accent-color); color: white; 
+            border: none; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s;
+        }
+        .btn-register:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 10px 20px rgba(232,118,26,0.3); }
+
+        .google-btn {
+            width: 100%; padding: 14px; background: white; color: black; border: none; border-radius: 12px;
+            font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px;
+            cursor: pointer; margin-top: 20px; transition: 0.3s; text-decoration: none;
+        }
+        .google-btn:hover { background: #f0f0f0; transform: translateY(-2px); }
+
+        .promo-badge {
+            background: rgba(232, 118, 26, 0.15); color: var(--accent-color); padding: 8px 16px;
+            border-radius: 100px; font-size: 13px; font-weight: 700; border: 1px solid rgba(232, 118, 26, 0.3);
+            display: inline-block; margin-bottom: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .split-screen { flex-direction: column; overflow-y: auto; }
+            .left-side { flex: none; padding: 60px 30px; min-height: 40vh; }
+            .left-side h1 { font-size: 40px; }
+            .right-side { flex: none; padding: 30px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="split-screen">
+        <div class="left-side">
+            <div style="font-size: 32px; font-weight: 700; margin-bottom: 40px;">emfitpro</div>
+            <h1>Explora las cosas que <span>más te gustan</span> del fitness.</h1>
+            <p>Únete a la élite. Más de 10,000 atletas ya están transformando sus cuerpos con nuestra IA coach personalizada.</p>
+        </div>
+        <div class="right-side">
+            <div class="register-container">
+                <div class="register-card">
+                    <div style="text-align: center;">
+                        <span class="promo-badge">🎁 10 DÍAS PLAN PRO GRATIS</span>
+                        <h2 style="color: white; margin-top: 0; margin-bottom: 30px;">Crear cuenta nueva</h2>
+                    </div>
+
+                    <?php if($error): ?>
+                        <div style="background: rgba(255,0,0,0.1); color: #ff4d4d; padding: 10px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-size: 14px; border: 1px solid rgba(255,0,0,0.2);">
+                            <?php echo $error; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <form method="POST">
+                        <input type="text" name="name" placeholder="Nombre completo" required>
+                        <input type="email" name="email" placeholder="Correo electrónico" required>
+                        <input type="password" name="password" placeholder="Nueva contraseña" required>
+                        <button type="submit" name="register" class="btn-register">Empezar ahora</button>
+                    </form>
+
+                    <div style="text-align: center; margin: 25px 0; color: #555; position: relative;">
+                        <hr style="border: 0; border-top: 1px solid #333;">
+                        <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #1a1a1a; padding: 0 10px;">o</span>
+                    </div>
+
+                    <a href="<?php echo getGoogleLoginUrl(); ?>" class="google-btn">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20">
+                        Registrarse con Google
+                    </a>
+                </div>
+                <p style="text-align: center; color: #666; font-size: 13px; margin-top: 25px;">
+                    ¿Ya tienes una cuenta? <a href="#" style="color: var(--accent-color); text-decoration: none; font-weight: 700;">Inicia sesión</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<?php 
+else: 
+// --- SI HAY SESIÓN, MOSTRAR DASHBOARD ---
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>emfitpro | Your Pro Coach</title>
+    <title>emfitpro | Dashboard</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
@@ -25,38 +172,6 @@ if (!isset($_SESSION['user_id'])) {
     <div class="overlay-gradient"></div>
 
     <div class="app-container">
-        <!-- Onboarding / Profile Setup -->
-        <div id="onboarding-overlay" class="lock-overlay hidden" style="background: linear-gradient(180deg, rgba(0,0,0,0.8), rgba(0,0,0,1)), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=1000'); background-size: cover; background-position: center; z-index: 9999; padding: 30px; overflow-y: auto;">
-            <div style="max-width: 400px; margin: 0 auto;">
-                <h2 style="color:var(--accent-color); font-size: 28px; margin-bottom: 5px;">Bienvenido a emfitpro</h2>
-                <p style="color:var(--text-secondary); font-size: 14px; margin-bottom: 25px;">Configura tu perfil para que nuestra IA diseñe tu plan perfecto.</p>
-                <div class="card" style="margin:0; padding:20px; text-align: left;">
-                    <label style="font-size:12px; color:var(--accent-color);">Nombre</label>
-                    <input type="text" id="setup-name" placeholder="Tu nombre" style="width:100%; padding:12px; background:#000; border:1px solid var(--glass); color:white; border-radius:10px; margin-bottom:15px;">
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                        <div>
-                            <label style="font-size:12px; color:var(--accent-color);">Edad</label>
-                            <input type="number" id="setup-age" placeholder="Años" style="width:100%; padding:12px; background:#000; border:1px solid var(--glass); color:white; border-radius:10px; margin-bottom:15px;">
-                        </div>
-                        <div>
-                            <label style="font-size:12px; color:var(--accent-color);">Peso (kg)</label>
-                            <input type="number" id="setup-weight" placeholder="kg" style="width:100%; padding:12px; background:#000; border:1px solid var(--glass); color:white; border-radius:10px; margin-bottom:15px;">
-                        </div>
-                    </div>
-                    <label style="font-size:12px; color:var(--accent-color);">Altura (cm)</label>
-                    <input type="number" id="setup-height" placeholder="cm" style="width:100%; padding:12px; background:#000; border:1px solid var(--glass); color:white; border-radius:10px; margin-bottom:15px;">
-                    <label style="font-size:12px; color:var(--accent-color);">Objetivo</label>
-                    <select id="setup-goal" style="width:100%; padding:12px; background:#000; border:1px solid var(--glass); color:white; border-radius:10px; margin-bottom:15px;">
-                        <option value="perder_grasa">Perder Grasa</option>
-                        <option value="ganar_musculo">Ganar Músculo</option>
-                        <option value="resistencia">Mejorar Resistencia</option>
-                    </select>
-                    <button onclick="saveProfile()" class="btn-upgrade" style="width:100%; margin-top:10px;">COMENZAR MI TRANSFORMACIÓN 🚀</button>
-                    <button onclick="window.location.href='logout.php'" style="width:100%; margin-top:20px; background:transparent; border:none; color:#666; font-size:12px;">Cerrar Sesión</button>
-                </div>
-            </div>
-        </div>
-
         <!-- Dashboard Screen -->
         <div id="screen-home" class="screen">
             <header style="background:transparent;">
@@ -69,21 +184,18 @@ if (!isset($_SESSION['user_id'])) {
                 </div>
                 <div class="notification-area" onclick="window.location.href='logout.php'" style="cursor:pointer; font-size:20px;">🚪</div>
             </header>
-            <div id="weight-check-banner" class="card hidden" style="background: linear-gradient(90deg, #E8761A 0%, #ff9a44 100%); margin-top:20px; padding:15px; border:none; color:white;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <p style="font-size:13px; font-weight:700;">⚖️ Mes cumplido! Actualiza tu peso</p>
-                    <button style="background:white; color:#E8761A; border:none; padding:5px 10px; border-radius:8px; font-size:11px; font-weight:700;">ACTUALIZAR</button>
-                </div>
-            </div>
+            
             <div class="stats-grid">
                 <div class="stat-item"><div class="stat-value">72</div><div class="stat-label">PESO (KG)</div></div>
                 <div class="stat-item"><div class="stat-value">12%</div><div class="stat-label">GRASA</div></div>
                 <div class="stat-item"><div class="stat-value">3.2k</div><div class="stat-label">KCAL HOY</div></div>
             </div>
+
             <div class="card coach-section">
                 <h3>🗣️ RECOMENDACIÓN DEL COACH</h3>
                 <p style="font-size: 14px; line-height: 1.5;">"Hoy te toca pierna. Mantén la intensidad y no olvides hidratarte cada 15 minutos."</p>
             </div>
+
             <div class="card">
                 <h3>📅 RUTINA DE HOY</h3>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -91,41 +203,8 @@ if (!isset($_SESSION['user_id'])) {
                         <h4 style="color:var(--accent-color)">Leg Day (Piernas/Glúteo)</h4>
                         <p style="font-size: 12px; color:var(--text-secondary)">6 Ejercicios • 50 min</p>
                     </div>
-                    <button class="btn-upgrade" style="margin:0; padding:8px 16px" onclick="startWorkout()">Empezar</button>
+                    <button class="btn-upgrade" onclick="startWorkout()">Empezar</button>
                 </div>
-            </div>
-        </div>
-
-        <!-- Coach AI Screen -->
-        <div id="screen-coach" class="screen hidden">
-            <header style="background:transparent;"><h2>Tu Staff Elite AI</h2></header>
-            <div class="pill-container">
-                <div class="pill active" onclick="switchCoach('psychologist')">🧠 Psicólogo</div>
-                <div class="pill" onclick="switchCoach('nutritionist')">🥗 Nutricionista</div>
-            </div>
-            <div class="card coach-section" style="height: 60vh; display: flex; flex-direction: column;">
-                <div id="chat-messages" style="flex:1; overflow-y:auto; padding-bottom:10px;">
-                    <p style="background:var(--glass); padding:10px; border-radius:10px; margin-bottom:10px; font-size:14px;"><b>Coach:</b> ¡Hola! Soy tu psicólogo deportivo. ¿Cómo te sientes hoy?</p>
-                </div>
-                <div style="display: flex; gap: 10px; padding-top:10px; border-top:1px solid var(--glass)">
-                    <input type="text" placeholder="Escribe al coach..." style="flex:1; background:#000; border:1px solid var(--glass); color:white; padding:10px; border-radius:10px;">
-                    <button style="background:var(--accent-color); border:none; color:white; padding:10px 15px; border-radius:10px;">➜</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Progress Screen -->
-        <div id="screen-progress" class="screen hidden">
-            <header><h2>Tu Progreso</h2></header>
-            <div class="card" style="background: var(--card-bg);">
-                <div style="display:flex; justify-content:space-around; text-align:center;">
-                    <div><div class="stat-value">12,450</div><div class="stat-label">KCAL TOTALES</div></div>
-                    <div><div class="stat-value">14</div><div class="stat-label">SESIONES</div></div>
-                </div>
-            </div>
-            <div class="card">
-                <h3>🗓️ CALENDARIO</h3>
-                <div class="calendar-grid" id="workout-calendar"></div>
             </div>
         </div>
 
@@ -139,3 +218,4 @@ if (!isset($_SESSION['user_id'])) {
     <script src="app.js"></script>
 </body>
 </html>
+<?php endif; ?>
