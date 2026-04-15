@@ -1,5 +1,5 @@
 <?php
-require 'config.php';
+require_once 'config.php';
 
 // Verificamos si el usuario tiene sesión activa
 if (!isset($_SESSION['user_id'])) {
