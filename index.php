@@ -1,12 +1,6 @@
 <?php
+die("<h1>¡SI LLEGUÉ AL PHP!</h1> Si ves esto, el código está funcionando. Si ves el Dashboard, es un problema de caché.");
 require 'config.php';
-
-// Verificamos si el usuario tiene sesión activa
-if (!isset($_SESSION['user_id'])) {
-    // Si no tiene sesión, lo mandamos al registro
-    header("Location: register.php");
-    exit();
-}
 
 // Si llega aquí, es porque tiene sesión. Mostramos el contenido de la app.
 ?>
