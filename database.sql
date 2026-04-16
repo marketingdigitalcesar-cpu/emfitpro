@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(100),
     email VARCHAR(100) UNIQUE,
     password VARCHAR(255),
+    google_id VARCHAR(100) UNIQUE,
     plan ENUM('gratis', 'pro') DEFAULT 'gratis',
     plan_expires DATETIME,
     stripe_customer_id VARCHAR(100),
