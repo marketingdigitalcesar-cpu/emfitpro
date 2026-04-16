@@ -7,8 +7,8 @@ require_once 'config.php';
 define('GOOGLE_CLIENT_ID', getenv('GOOGLE_CLIENT_ID'));
 define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET'));
 
-// Determinar la URL de redirección automáticamente
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
+// Determinar la URL de redirección automáticamente (Forzamos https para producción)
+$protocol = "https";
 $host = $_SERVER['HTTP_HOST'];
 define('GOOGLE_REDIRECT_URL', $protocol . '://' . $host . '/google_callback.php');
 
