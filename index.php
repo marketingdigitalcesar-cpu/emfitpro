@@ -151,7 +151,7 @@ if (!isset($_SESSION['user_id'])):
                     </div>
 
                     <a href="<?php echo getGoogleLoginUrl(); ?>" class="google-btn">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20">
+                        <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" width="20">
                         Registrarse con Google
                     </a>
                     
