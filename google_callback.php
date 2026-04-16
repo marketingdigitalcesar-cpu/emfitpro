@@ -69,10 +69,29 @@ if (isset($_GET['code'])) {
         $stmt->bind_param("sss", $name, $email, $google_id);
 
         if ($stmt->execute()) {
-            $_SESSION['user_id'] = $stmt->insert_id;
+            $new_user_id = $stmt->insert_id;
+            $_SESSION['user_id'] = $new_user_id;
             $_SESSION['user_name'] = $name;
             $_SESSION['user_plan'] = 'pro';
-            header("Location: complete_profile.php"); // Enviamos a completar perfil si es nuevo
+
+            // ENVIAR EMAIL DE BIENVENIDA VÍA n8n
+            $webhook_url = 'https://n8n.kuepa.com/webhook/emfitpro-welcome';
+            $payload = [
+                'event' => 'new_registration',
+                'name' => $name,
+                'email' => $email,
+                'source' => 'google'
+            ];
+            
+            $ch = curl_init($webhook_url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            curl_exec($ch); // Ejecución silenciosa
+            curl_close($ch);
+
+            header("Location: complete_profile.php");
             exit();
         } else {
             die("Error al crear la cuenta con Google.");
