@@ -51,6 +51,8 @@ if (isset($_GET['code'])) {
     if ($user = $result->fetch_assoc()) {
         // El usuario ya existe, iniciamos sesión
         $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_name'] = $user['name'];
+        $_SESSION['user_plan'] = $user['plan'];
         
         // Si no tiene el google_id guardado, lo actualizamos
         if (empty($user['google_id'])) {
@@ -68,6 +70,8 @@ if (isset($_GET['code'])) {
 
         if ($stmt->execute()) {
             $_SESSION['user_id'] = $stmt->insert_id;
+            $_SESSION['user_name'] = $name;
+            $_SESSION['user_plan'] = 'pro';
             header("Location: complete_profile.php"); // Enviamos a completar perfil si es nuevo
             exit();
         } else {

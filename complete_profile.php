@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($stmt->execute()) {
         // Aquí podrías disparar n8n para generar la primera rutina
         triggerN8NWorkout(['userId' => $userId, 'goal' => $goal]);
-        header("Location: index.html");
+        header("Location: index.php");
     }
 }
 ?>

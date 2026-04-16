@@ -266,6 +266,12 @@ else:
             <a href="#" class="nav-item">Progreso</a>
         </nav>
     </div>
+    <script>
+        // Sincronizar sesión de PHP con el estado de la App JS
+        currentUser.name = "<?php echo $_SESSION['user_name'] ?? 'Atleta'; ?>";
+        currentUser.plan = "<?php echo $_SESSION['user_plan'] ?? 'gratis'; ?>";
+        currentUser.profileSet = true; // Si ya entró al dashboard, asumimos perfil básico
+    </script>
     <script src="app.js"></script>
 </body>
 </html>
