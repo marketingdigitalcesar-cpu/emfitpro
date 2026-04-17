@@ -43,7 +43,7 @@ if (isset($_GET['code'])) {
 
     // 3. Verificar si el usuario ya existe en la base de datos
     // Primero intentamos buscar por email
-    $stmt = $conn->prepare("SELECT id, google_id FROM users WHERE email = ?");
+    $stmt = $conn->prepare("SELECT id, name, plan, google_id FROM users WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
