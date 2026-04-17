@@ -227,7 +227,7 @@ if (!$userData || empty($userData['name']) || $userData['weight'] === null) {
 }
 
 $displayName = $userData['name'] ?: 'Atleta';
-$displayPlan = ucfirst($userData['plan'] ?: 'gratis');
+$displayPlan = strtoupper($userData['plan'] ?: 'gratis');
 $displayWeight = $userData['weight'] ?: '--';
 ?>
 <!DOCTYPE html>
@@ -244,26 +244,41 @@ $displayWeight = $userData['weight'] ?: '--';
     <div class="overlay-gradient"></div>
 
     <div class="app-container">
-        <header style="background:transparent;">
+        <!-- HEADER CON DROPDOWN -->
+        <header>
             <div class="user-badge">
-                <div id="user-avatar" style="background:#333; width:40px; height:40px; border-radius:50%; border:2px solid var(--accent-color); background-image: url('https://ui-avatars.com/api/?name=<?php echo urlencode($displayName); ?>&background=random'); background-size: cover;"></div>
+                <div class="dropdown">
+                    <div id="user-avatar" class="avatar-circle" onclick="toggleDropdown()">
+                        <?php 
+                            $initials = "";
+                            $words = explode(" ", $displayName);
+                            foreach ($words as $w) $initials .= strtoupper($w[0]);
+                            echo substr($initials, 0, 2);
+                        ?>
+                    </div>
+                    <div id="profile-dropdown" class="dropdown-content">
+                        <a href="javascript:void(0)" onclick="switchScreen('settings', this)">⚙️ Actualizar Perfil</a>
+                        <a href="logout.php">🚪 Cerrar Sesión</a>
+                    </div>
+                </div>
                 <div>
                     <h2 style="font-size: 16px;">Hola, <span id="user-name"><?php echo htmlspecialchars($displayName); ?></span>!</h2>
                     <span class="plan-tag" id="user-plan"><?php echo htmlspecialchars($displayPlan); ?></span>
                 </div>
             </div>
-            <div class="notification-area" onclick="window.location.href='logout.php'" style="cursor:pointer; font-size:20px;">🚪</div>
+            <div class="notification-area" style="font-size:20px;">🔔</div>
         </header>
-        
+
+        <!-- PANTALLA INICIO -->
         <div id="screen-home" class="screen">
             <div class="stats-grid">
-                <div class="stat-item"><div class="stat-value"><?php echo htmlspecialchars($displayWeight); ?></div><div class="stat-label">PESO (KG)</div></div>
+                <div class="stat-item"><div class="stat-value"><?php echo $displayWeight; ?></div><div class="stat-label">PESO (KG)</div></div>
                 <div class="stat-item"><div class="stat-value">--</div><div class="stat-label">GRASA</div></div>
                 <div class="stat-item"><div class="stat-value">--</div><div class="stat-label">KCAL HOY</div></div>
             </div>
             <div class="card coach-section">
                 <h3>🗣️ RECOMENDACIÓN DEL COACH</h3>
-                <p style="font-size: 14px;">"<?php echo ($userData['goal'] ?? '') == 'ganar_musculo' ? 'Hoy toca enfocar en hipertrofia.' : 'Mantén el déficit calórico y sigue con el cardio.'; ?> Mantén la intensidad!"</p>
+                <p id="coach-tip" style="font-size: 14px;">"<?php echo ($userData['goal'] == 'ganar_musculo') ? 'Hoy toca enfocar en hipertrofia.' : 'Mantén el déficit calórico y el cardio.'; ?> ¡Dale con todo!"</p>
             </div>
             <div class="card">
                 <h3>📅 RUTINA DE HOY</h3>
@@ -274,18 +289,114 @@ $displayWeight = $userData['weight'] ?: '--';
             </div>
         </div>
 
+        <!-- PANTALLA COMUNIDAD -->
+        <div id="screen-social" class="screen hidden">
+            <h2 style="padding: 0 20px; margin-bottom: 20px;">Comunidad Pro</h2>
+            <div id="feed-container">
+                <div class="card">
+                    <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+                        <div style="width:30px; height:30px; border-radius:50%; background:#444;"></div>
+                        <span style="font-size:14px; font-weight:700;">Alex Trainer</span>
+                    </div>
+                    <p style="font-size:14px;">¡Acabo de completar 50 mins de HIIT! 🚀 Quién se une mañana?</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA COACH AI -->
+        <div id="screen-coach" class="screen hidden">
+            <div class="pill-container">
+                <div class="pill active" onclick="switchCoach('nutritionist')">Nutricionista</div>
+                <div class="pill" onclick="switchCoach('psychologist')">Psicólogo</div>
+            </div>
+            <div class="card" style="height: 400px; display: flex; flex-direction: column;">
+                <h2 style="margin-bottom: 15px;">Tu Nutricionista AI</h2>
+                <div id="chat-messages" style="flex: 1; overflow-y: auto; padding-right: 5px; font-size: 14px;">
+                    <p style="background:var(--glass); padding:10px; border-radius:10px; margin-bottom:10px;">¡Hola! Soy tu nutricionista inteligente. ¿En qué puedo ayudarte con tu dieta hoy?</p>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <input type="text" id="coach-input" placeholder="Pregunta algo..." style="margin-bottom: 0; flex: 1;">
+                    <button class="btn-upgrade" style="margin-top: 0; padding: 10px;" onclick="sendMessageToCoach()">🚀</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA PROGRESO -->
+        <div id="screen-progress" class="screen hidden">
+            <div class="card">
+                <h3>📈 REGISTRO DE PESO</h3>
+                <div style="height: 150px; display: flex; align-items: flex-end; gap: 10px; padding-bottom: 10px;">
+                    <div style="flex:1; background:var(--accent-color); height: 80%; border-radius: 5px;"></div>
+                    <div style="flex:1; background:var(--accent-color); height: 85%; border-radius: 5px;"></div>
+                    <div style="flex:1; background:var(--accent-color); height: 75%; border-radius: 5px;"></div>
+                    <div style="flex:1; background:var(--accent-color); height: 90%; border-radius: 5px;"></div>
+                </div>
+            </div>
+            <div class="card">
+                <h3>🗓️ CALENDARIO DE ENTRENOS</h3>
+                <div id="workout-calendar" class="calendar-grid"></div>
+            </div>
+        </div>
+
+        <!-- PANTALLA CONFIGURACIÓN -->
+        <div id="screen-settings" class="screen hidden">
+            <div class="card">
+                <h3>⚙️ MI PERFIL</h3>
+                <form onsubmit="saveProfileFromSettings(); return false;">
+                    <label style="font-size:10px; color:#666;">PESO ACTUAL (KG)</label>
+                    <input type="number" id="edit-weight" value="<?php echo $displayWeight; ?>">
+                    <label style="font-size:10px; color:#666;">OBJETIVO</label>
+                    <select id="edit-goal" class="pill" style="width: 100%; margin-bottom: 15px;">
+                        <option value="ganar_musculo" <?php if($userData['goal']=='ganar_musculo') echo 'selected'; ?>>Ganar Músculo</option>
+                        <option value="perder_grasa" <?php if($userData['goal']=='perder_grasa') echo 'selected'; ?>>Perder Grasa</option>
+                    </select>
+                    <button type="submit" class="btn-upgrade" style="width: 100%;">Guardar Cambios</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- OVERLAYS DE ENTRENAMIENTO -->
+        <div id="time-selector-overlay" class="lock-overlay hidden">
+            <h2>¿Cuánto tiempo tienes?</h2>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="pill" onclick="setWorkoutDuration(15)">15m</button>
+                <button class="pill" onclick="setWorkoutDuration(30)">30m</button>
+                <button class="pill" onclick="setWorkoutDuration(45)">45m</button>
+            </div>
+            <button class="btn-upgrade" style="background:#444" onclick="document.getElementById('time-selector-overlay').classList.add('hidden')">Cancelar</button>
+        </div>
+
         <nav>
-            <a href="#" class="nav-item active">Inicio</a>
-            <a href="#" class="nav-item">Comunidad</a>
-            <a href="#" class="nav-item">Coach AI</a>
-            <a href="#" class="nav-item">Progreso</a>
+            <a href="javascript:void(0)" class="nav-item active" onclick="switchScreen('home', this)">
+                <span style="font-size: 20px;">🏠</span>
+                <span>Inicio</span>
+            </a>
+            <a href="javascript:void(0)" class="nav-item" onclick="switchScreen('social', this)">
+                <span style="font-size: 20px;">🤝</span>
+                <span>Comunidad</span>
+            </a>
+            <a href="javascript:void(0)" class="nav-item" onclick="switchScreen('coach', this)">
+                <span style="font-size: 20px;">🤖</span>
+                <span>Coach AI</span>
+            </a>
+            <a href="javascript:void(0)" class="nav-item" onclick="switchScreen('progress', this)">
+                <span style="font-size: 20px;">📊</span>
+                <span>Progreso</span>
+            </a>
         </nav>
     </div>
+
     <script>
-        // Sincronizar sesión de PHP con el estado de la App JS
-        currentUser.name = "<?php echo $_SESSION['user_name'] ?? 'Atleta'; ?>";
-        currentUser.plan = "<?php echo $_SESSION['user_plan'] ?? 'gratis'; ?>";
-        currentUser.profileSet = true; // Si ya entró al dashboard, asumimos perfil básico
+        // Sincronización PHP -> JS
+        const currentUser = {
+            id: <?php echo $userId; ?>,
+            name: "<?php echo $displayName; ?>",
+            plan: "<?php echo strtolower($userData['plan']); ?>",
+            stats: {
+                weight: <?php echo $userData['weight'] ?: 70; ?>,
+                goal: "<?php echo $userData['goal']; ?>"
+            }
+        };
     </script>
     <script src="app.js"></script>
 </body>
