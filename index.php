@@ -213,7 +213,22 @@ if (!isset($_SESSION['user_id'])):
 </html>
 <?php 
 else: 
-// --- DASHBOARD ---
+// --- DASHBOARD - RECUPERAR DATOS REALES ---
+$userId = $_SESSION['user_id'];
+$stmt = $conn->prepare("SELECT u.name, u.plan, p.weight, p.goal FROM users u LEFT JOIN user_profiles p ON u.id = p.user_id WHERE u.id = ?");
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$userData = $stmt->get_result()->fetch_assoc();
+
+// Si está logueado pero no tiene perfil, forzar a completarlo
+if (!$userData || empty($userData['name']) || $userData['weight'] === null) {
+    header("Location: complete_profile.php");
+    exit();
+}
+
+$displayName = $userData['name'] ?: 'Atleta';
+$displayPlan = ucfirst($userData['plan'] ?: 'gratis');
+$displayWeight = $userData['weight'] ?: '--';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -231,10 +246,10 @@ else:
     <div class="app-container">
         <header style="background:transparent;">
             <div class="user-badge">
-                <div id="user-avatar" style="background:#333; width:40px; height:40px; border-radius:50%; border:2px solid var(--accent-color)"></div>
+                <div id="user-avatar" style="background:#333; width:40px; height:40px; border-radius:50%; border:2px solid var(--accent-color); background-image: url('https://ui-avatars.com/api/?name=<?php echo urlencode($displayName); ?>&background=random'); background-size: cover;"></div>
                 <div>
-                    <h2 style="font-size: 16px;">Hola, <span id="user-name">Atleta</span>!</h2>
-                    <span class="plan-tag" id="user-plan">Gratis</span>
+                    <h2 style="font-size: 16px;">Hola, <span id="user-name"><?php echo htmlspecialchars($displayName); ?></span>!</h2>
+                    <span class="plan-tag" id="user-plan"><?php echo htmlspecialchars($displayPlan); ?></span>
                 </div>
             </div>
             <div class="notification-area" onclick="window.location.href='logout.php'" style="cursor:pointer; font-size:20px;">🚪</div>
@@ -242,13 +257,13 @@ else:
         
         <div id="screen-home" class="screen">
             <div class="stats-grid">
-                <div class="stat-item"><div class="stat-value">72</div><div class="stat-label">PESO (KG)</div></div>
-                <div class="stat-item"><div class="stat-value">12%</div><div class="stat-label">GRASA</div></div>
-                <div class="stat-item"><div class="stat-value">3.2k</div><div class="stat-label">KCAL HOY</div></div>
+                <div class="stat-item"><div class="stat-value"><?php echo htmlspecialchars($displayWeight); ?></div><div class="stat-label">PESO (KG)</div></div>
+                <div class="stat-item"><div class="stat-value">--</div><div class="stat-label">GRASA</div></div>
+                <div class="stat-item"><div class="stat-value">--</div><div class="stat-label">KCAL HOY</div></div>
             </div>
             <div class="card coach-section">
                 <h3>🗣️ RECOMENDACIÓN DEL COACH</h3>
-                <p style="font-size: 14px;">"Hoy te toca pierna. Mantén la intensidad y no olvides hidratarte cada 15 minutos."</p>
+                <p style="font-size: 14px;">"<?php echo ($userData['goal'] ?? '') == 'ganar_musculo' ? 'Hoy toca enfocar en hipertrofia.' : 'Mantén el déficit calórico y sigue con el cardio.'; ?> Mantén la intensidad!"</p>
             </div>
             <div class="card">
                 <h3>📅 RUTINA DE HOY</h3>

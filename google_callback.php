@@ -60,8 +60,17 @@ if (isset($_GET['code'])) {
             $update->bind_param("si", $google_id, $user['id']);
             $update->execute();
         }
+
+        // VERIFICAR SI TIENE PERFIL COMPLETADO
+        $checkProfile = $conn->prepare("SELECT user_id FROM user_profiles WHERE user_id = ?");
+        $checkProfile->bind_param("i", $user['id']);
+        $checkProfile->execute();
         
-        header("Location: index.php");
+        if ($checkProfile->get_result()->num_rows > 0) {
+            header("Location: index.php");
+        } else {
+            header("Location: complete_profile.php");
+        }
         exit();
     } else {
         // Usuario nuevo: Registrarlo con 10 días de Plan Pro Gratis
