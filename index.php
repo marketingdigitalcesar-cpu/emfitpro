@@ -2,6 +2,21 @@
 require_once 'config.php';
 require_once 'google_auth.php';
 
+// --- LÓGICA DE ACTUALIZACIÓN DE PERFIL ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
+    $userId = $_SESSION['user_id'];
+    $u_weight = $_POST['weight'];
+    $u_height = $_POST['height'];
+    $u_age = $_POST['age'];
+    $u_goal = $_POST['goal'];
+
+    $stmt = $conn->prepare("UPDATE user_profiles SET weight = ?, height = ?, age = ?, goal = ? WHERE user_id = ?");
+    $stmt->bind_param("ddisi", $u_weight, $u_height, $u_age, $u_goal, $userId);
+    $stmt->execute();
+    header("Location: index.php");
+    exit();
+}
+
 // --- LÓGICA DE ACCESO ---
 $error = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -108,7 +123,7 @@ if (!isset($_SESSION['user_id'])):
 <?php 
 else: 
 $userId = $_SESSION['user_id'];
-$stmt = $conn->prepare("SELECT u.name, u.plan, p.weight, p.height, p.goal FROM users u LEFT JOIN user_profiles p ON u.id = p.user_id WHERE u.id = ?");
+$stmt = $conn->prepare("SELECT u.name, u.plan, p.weight, p.height, p.age, p.goal FROM users u LEFT JOIN user_profiles p ON u.id = p.user_id WHERE u.id = ?");
 $stmt->bind_param("i", $userId);
 $stmt->execute();
 $userData = $stmt->get_result()->fetch_assoc();
@@ -122,8 +137,9 @@ $displayName = $userData['name'];
 $displayPlan = strtoupper($userData['plan']);
 $displayWeight = $userData['weight'];
 $displayHeight = $userData['height'];
+$displayAge = $userData['age'];
 
-// Calculo de IMC (Indice de Masa Corporal)
+// Calculo de IMC
 $imc = 0;
 if ($displayHeight > 0) {
     $heightInMeters = $displayHeight / 100;
@@ -147,7 +163,7 @@ if ($displayHeight > 0) {
         .overlay-gradient { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%); z-index: -1; }
         .avatar-circle { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-color), #f79c42); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; border: 2px solid white; cursor: pointer; box-shadow: 0 4px 15px rgba(232,118,26,0.3); }
         .dropdown { position: relative; }
-        .dropdown-content { display: none; position: absolute; top: 55px; left: 0; background: rgba(20,20,20,0.98); min-width: 180px; border-radius: 12px; border: 1px solid var(--glass-heavy); backdrop-filter: blur(10px); z-index:1001; }
+        .dropdown-content { display: none; position: absolute; top: 55px; left: 0; background: rgba(25,25,25,0.98); min-width: 180px; border-radius: 12px; border: 1px solid var(--glass-heavy); backdrop-filter: blur(10px); z-index:1001; }
         .dropdown-content a { color: white; padding: 14px 16px; text-decoration: none; display: block; font-size: 14px; }
         .dropdown-content.show { display: block; }
         .plan-tag { background: var(--accent-color); color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
@@ -156,14 +172,13 @@ if ($displayHeight > 0) {
         .stat-value { font-size: 22px; font-weight: 700; color: var(--accent-color); }
         .stat-label { font-size: 10px; color: var(--text-secondary); margin-top: 4px; }
         .card { background: var(--card-bg); border-radius: 24px; padding: 24px; margin: 0 20px 20px; border: 1px solid var(--glass-heavy); backdrop-filter: blur(20px); }
-        .btn-upgrade { background: var(--accent-color); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+        .btn-upgrade { background: var(--accent-color); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 10px; }
         nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; background: rgba(20,20,20,0.9); backdrop-filter: blur(20px); display: flex; justify-content: space-around; padding: 15px 0 30px; border-top: 1px solid var(--glass); z-index:1000; }
-        .nav-item { color: #888; text-decoration: none; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .nav-item { color: #888; text-decoration: none; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
         .nav-item.active { color: var(--accent-color); }
         .hidden { display: none !important; }
-        .pill-container { display: flex; gap: 10px; padding: 0 20px 20px; overflow-x: auto; }
-        .pill { padding: 10px 20px; background: rgba(255,255,255,0.05); border-radius: 50px; border: 1px solid var(--glass); font-size: 13px; color: white; white-space: nowrap; cursor: pointer; }
-        .pill.active { background: var(--accent-color); border: none; }
+        label { display: block; font-size: 10px; color: #888; margin-bottom: 5px; margin-top: 10px; }
+        input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #000; color: white; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -173,7 +188,7 @@ if ($displayHeight > 0) {
             <div style="display:flex; align-items:center; gap:12px;">
                 <div class="dropdown">
                     <div class="avatar-circle" onclick="toggleDropdown()"><?php $words = explode(' ', $displayName); echo strtoupper($words[0][0] . ($words[1][0] ?? '')); ?></div>
-                    <div id="profile-drop" class="dropdown-content"><a href="javascript:void(0)" onclick="switchScreen('settings')">⚙️ Perfil</a><a href="logout.php">🚪 Salir</a></div>
+                    <div id="profile-drop" class="dropdown-content"><a href="javascript:void(0)" onclick="switchScreen('settings', this)">⚙️ Perfil</a><a href="logout.php">🚪 Salir</a></div>
                 </div>
                 <div><h2 style="font-size:16px; margin:0;">Hola, <?php echo htmlspecialchars(explode(' ', $displayName)[0]); ?>!</h2><span class="plan-tag"><?php echo $displayPlan; ?></span></div>
             </div>
@@ -186,24 +201,33 @@ if ($displayHeight > 0) {
                 <div class="stat-item"><div class="stat-value"><?php echo $imc; ?></div><div class="stat-label">IMC (MASA)</div></div>
                 <div class="stat-item"><div class="stat-value">--</div><div class="stat-label">KCAL HOY</div></div>
             </div>
-            <div class="card" style="background: linear-gradient(135deg, #2c1a0a 0%, #1a1a1a 100%);">
-                <h3>🗣️ CONSEJO IA</h3>
-                <p style="font-size: 14px;">"Tu IMC es de <?php echo $imc; ?> (<?php echo ($imc < 25) ? 'Normal' : 'Sobrepeso'; ?>). <?php echo $userData['goal'] == 'ganar_musculo' ? 'Enfócate en series pesadas hoy.' : 'Prioriza el gasto calórico.'; ?>"</p>
-            </div>
-            <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div><h4 style="margin:0;">Rutina de Hoy</h4><p style="margin:5px 0 0; font-size:12px; color:#888;">Pierna & Glúteo</p></div>
-                    <button class="btn-upgrade" onclick="alert('Generando rutina...')">Empezar</button>
-                </div>
-            </div>
+            <div class="card" style="background: linear-gradient(135deg, #2c1a0a 0%, #1a1a1a 100%);"><h3>🗣️ CONSEJO IA</h3><p style="font-size: 14px;">"Tu IMC es <?php echo $imc; ?>. ¡A por ello!"</p></div>
+            <div class="card"><div style="display:flex; justify-content:space-between; align-items:center;"><div><h4 style="margin:0;">Rutina de Hoy</h4><p style="margin:5px 0 0; font-size:12px; color:#888;">Pierna</p></div><button class="btn-upgrade" style="width:auto;" onclick="alert('Generando...')">Empezar</button></div></div>
         </div>
 
-        <div id="screen-social" class="screen hidden"><div class="card"><h3>🤝 COMUNIDAD</h3><p>Próximamente: Comparte tus logros con otros atletas.</p></div></div>
-        <div id="screen-coach" class="screen hidden">
-            <div class="pill-container"><div class="pill active">Nutricionista</div><div class="pill">Psicólogo</div></div>
-            <div class="card" style="height:350px;"><h3>🤖 CHAT CON IA</h3><div id="chat-box" style="font-size:14px; color:#aaa;">Hola! Estoy listo para optimizar tu dieta basada en tus <?php echo $displayWeight; ?>kg de peso.</div></div>
+        <div id="screen-social" class="screen hidden"><div class="card"><h3>🤝 COMUNIDAD</h3><p>Muro de logros social pronto.</p></div></div>
+        <div id="screen-coach" class="screen hidden"><div class="card"><h3>🤖 COACH AI</h3><p>Pregúntame lo que quieras sobre tu dieta.</p></div></div>
+        <div id="screen-progress" class="screen hidden"><div class="card"><h3>📊 PROGRESO</h3><p>Altura: <?php echo $displayHeight; ?> cm</p><p>Edad: <?php echo $displayAge; ?> años</p></div></div>
+
+        <!-- PANTALLA DE CONFIGURACION DE PERFIL -->
+        <div id="screen-settings" class="screen hidden">
+            <div class="card">
+                <h3 style="margin-top:0;">⚙️ ACTUALIZAR PERFIL</h3>
+                <form method="POST">
+                    <input type="hidden" name="update_profile" value="1">
+                    <label>EDAD</label><input type="number" name="age" value="<?php echo $displayAge; ?>" required>
+                    <label>PESO (KG)</label><input type="number" step="0.1" name="weight" value="<?php echo $displayWeight; ?>" required>
+                    <label>ALTURA (CM)</label><input type="number" name="height" value="<?php echo $displayHeight; ?>" required>
+                    <label>OBJETIVO</label>
+                    <select name="goal">
+                        <option value="ganar_musculo" <?php if($userData['goal']=='ganar_musculo') echo 'selected'; ?>>Ganar Músculo</option>
+                        <option value="perder_grasa" <?php if($userData['goal']=='perder_grasa') echo 'selected'; ?>>Perder Grasa</option>
+                    </select>
+                    <button type="submit" class="btn-upgrade">Guardar cambios</button>
+                    <button type="button" class="btn-upgrade" style="background:#333;" onclick="switchScreen('home')">Cancelar</button>
+                </form>
+            </div>
         </div>
-        <div id="screen-progress" class="screen hidden"><div class="card"><h3>📊 TU PROGRESO</h3><p>Altura: <?php echo $displayHeight; ?> cm</p><p>Peso: <?php echo $displayWeight; ?> kg</p><p>IMC: <?php echo $imc; ?></p></div></div>
 
         <nav>
             <a href="javascript:void(0)" class="nav-item active" onclick="switchScreen('home', this)"><span>🏠</span><span>Inicio</span></a>
@@ -217,16 +241,16 @@ if ($displayHeight > 0) {
         function toggleDropdown() { document.getElementById('profile-drop').classList.toggle('show'); }
         function switchScreen(id, el) {
             document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-            document.getElementById('screen-' + id).classList.remove('hidden');
+            const target = document.getElementById('screen-' + id);
+            if(target) target.classList.remove('hidden');
+            
+            // ACTUALIZACIÓN DE NAVEGACIÓN
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            if(el) el.classList.add('active');
-            toggleDropdown(); // Cerrar dropdown si venía de ahí
+            if(el && el.classList.contains('nav-item')) el.classList.add('active');
+            
+            // CERRAR DROPDOWN SIEMPRE AL CAMBIAR DE PANTALLA
+            document.getElementById('profile-drop').classList.remove('show');
         }
-        window.addEventListener('scroll', () => {
-            const header = document.getElementById('main-header');
-            if(window.scrollY > 20) header.classList.add('scrolled');
-            else header.classList.remove('scrolled');
-        });
     </script>
 </body>
 </html>
