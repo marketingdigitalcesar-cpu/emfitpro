@@ -12,14 +12,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $userId = $_SESSION['user_id'];
     $age = $_POST['age'] ?? 0;
     $weight = $_POST['weight'] ?? 0;
+    $height = $_POST['height'] ?? 0;
     $goal = $_POST['goal'] ?? 'ganar_musculo';
 
-    $stmt = $conn->prepare("INSERT INTO user_profiles (user_id, age, weight, goal) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE age=?, weight=?, goal=?");
-    $stmt->bind_param("idssiss", $userId, $age, $weight, $goal, $age, $weight, $goal);
+    $stmt = $conn->prepare("INSERT INTO user_profiles (user_id, age, weight, height, goal) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE age=?, weight=?, height=?, goal=?");
+    $stmt->bind_param("idddssdds", $userId, $age, $weight, $height, $goal, $age, $weight, $height, $goal);
 
     if ($stmt->execute()) {
         // Disparar n8n para generar la primera rutina
-        triggerN8NWorkout(['userId' => $userId, 'goal' => $goal]);
+        triggerN8NWorkout(['userId' => $userId, 'goal' => $goal, 'weight' => $weight, 'height' => $height]);
         header("Location: index.php");
         exit();
     } else {
@@ -36,14 +37,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { background: #000; font-family: 'Outfit', sans-serif; color: white; margin: 0; overflow: hidden; }
+        body { background: #000; font-family: 'Outfit', sans-serif; color: white; margin: 0; overflow-y: auto; }
         .setup-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=1500');
             background-size: cover; background-position: center; z-index: -1;
         }
         .container {
-            display: flex; justify-content: center; align-items: center; height: 100vh; padding: 20px;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 40px 20px;
         }
         .setup-card {
             background: rgba(26, 26, 26, 0.95); padding: 40px; border-radius: 24px;
@@ -79,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container">
         <div class="setup-card">
             <span class="promo-pill">PASO FINAL</span>
-            <h1>Casi listo, <?php echo explode(' ', $_SESSION['user_name'])[0]; ?></h1>
+            <h1>Casi listo, <?php echo explode(' ', $_SESSION['user_name'] ?? 'Atleta')[0]; ?></h1>
             <p>Personaliza tu experiencia para que nuestra IA diseñe el plan perfecto para ti.</p>
 
             <?php if($error): ?>
@@ -92,8 +93,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label>EDAD</label>
                 <input type="number" name="age" placeholder="Ej: 25" required min="10" max="100">
 
-                <label>PESO ACTUAL (KG)</label>
-                <input type="number" step="0.1" name="weight" placeholder="Ej: 75.5" required>
+                <div style="display: flex; gap: 15px;">
+                    <div style="flex: 1;">
+                        <label>PESO (KG)</label>
+                        <input type="number" step="0.1" name="weight" placeholder="Ej: 75.5" required>
+                    </div>
+                    <div style="flex: 1;">
+                        <label>ALTURA (CM)</label>
+                        <input type="number" name="height" placeholder="Ej: 175" required>
+                    </div>
+                </div>
 
                 <label>TU OBJETIVO PRINCIPAL</label>
                 <select name="goal" required>
