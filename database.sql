@@ -40,3 +40,12 @@ CREATE TABLE IF NOT EXISTS sessions (
     completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS user_coach_data (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    category ENUM('entrenador', 'nutricionista', 'sicologo'),
+    content TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

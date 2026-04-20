@@ -20,12 +20,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute();
     $userData = $stmt->get_result()->fetch_assoc();
 
-    // Preparar el envío a n8n
+    // Obtener última recomendación de este rol para memoria a largo plazo
+    $current_role = $data['role'] ?? 'entrenador';
+    $stmt_mem = $conn->prepare("SELECT content FROM user_coach_data WHERE user_id = ? AND category = ? ORDER BY created_at DESC LIMIT 1");
+    $stmt_mem->bind_param("is", $userId, $current_role);
+    $stmt_mem->execute();
+    $hist_data = $stmt_mem->get_result()->fetch_assoc();
+    $last_insight = $hist_data['content'] ?? 'Ninguna previa.';
+
+    // Preparar el envío a n8n con contexto histórico
     $payload = [
         'userId' => $userId,
         'userName' => $userData['name'] ?? 'Atleta',
-        'role' => $data['role'] ?? 'entrenador',
+        'role' => $current_role,
         'message' => $data['message'],
+        'lastInteraction' => $last_insight,
         'profile' => [
             'weight' => $userData['weight'],
             'height' => $userData['height'],
