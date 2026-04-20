@@ -246,6 +246,11 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             </div>
         </div>
 
+        <nav>
+            <a href="javascript:void(0)" class="nav-item active" onclick="switchScreen('home', this)"><span>🏠</span><span>Inicio</span></a>
+            <a href="javascript:void(0)" class="nav-item" onclick="switchScreen('social', this)"><span>🤝</span><span>Social</span></a>
+            <a href="javascript:void(0)" class="nav-item" onclick="switchScreen('coach', this)"><span>🤖</span><span>Coach</span></a>
+            <a href="javascript:void(0)" class="nav-item" onclick="switchScreen('progress', this)"><span>📊</span><span>Progreso</span></a>
         </nav>
 
         <!-- MODAL DE EJERCICIO -->
@@ -270,7 +275,10 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             document.getElementById('profile-drop').classList.remove('show');
         }
 
-        let exercises = []; // Ahora es dinámico
+        let exercises = [
+            { name: "Sentadilla Libre", sets: "4x12", done: false },
+            { name: "Press de Banca", sets: "3x10", done: false }
+        ]; // Rutina inicial
 
         function renderExercises() {
             const list = document.getElementById('exercises-list');
