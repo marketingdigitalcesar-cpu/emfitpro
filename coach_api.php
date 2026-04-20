@@ -42,12 +42,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    
+    // Bypass SSL temporary for debugging
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
     
-    if ($httpCode !== 200) {
-        echo json_encode(['error' => 'Error comunicando con n8n', 'code' => $httpCode]);
+    if ($curlError) {
+        echo json_encode(['error' => 'Error de conexión cURL', 'details' => $curlError]);
+    } elseif ($httpCode !== 200) {
+        echo json_encode(['error' => 'n8n retornó un error', 'code' => $httpCode, 'response' => $response]);
     } else {
         echo $response;
     }

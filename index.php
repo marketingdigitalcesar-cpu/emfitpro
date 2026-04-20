@@ -378,17 +378,23 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                     body: JSON.stringify({ message: text, role: currentRole })
                 });
                 
-                const result = await response.json();
                 const loadingEl = document.getElementById(loadingId);
+                let resultText = "";
                 
-                if (result.output) {
-                    loadingEl.innerText = result.output;
-                } else if (result.choices && result.choices[0].message) {
-                    loadingEl.innerText = result.choices[0].message.content;
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    const result = await response.json();
+                    resultText = result.output || 
+                                 (result.choices && result.choices[0].message ? result.choices[0].message.content : null) || 
+                                 result.message ||
+                                 JSON.stringify(result);
                 } else {
-                    loadingEl.innerText = "Lo siento, tuve un problema al procesar tu solicitud.";
+                    resultText = await response.text();
                 }
+
+                loadingEl.innerText = resultText || "El coach no ha podido responder en este momento.";
             } catch (e) {
+                console.error("Error AI:", e);
                 document.getElementById(loadingId).innerText = "Error de conexión con el coach.";
             }
             box.scrollTop = box.scrollHeight;
