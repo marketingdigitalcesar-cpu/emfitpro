@@ -171,10 +171,15 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                 <div class="stat-item"><div class="stat-value">--</div><div class="stat-label">KCAL HOY</div></div>
             </div>
             <div class="card" style="background: linear-gradient(135deg, #2c1a0a 0%, #1a1a1a 100%);"><h3>🗣️ CONSEJO IA</h3><p style="font-size: 14px;">"Optimicemos tus <?php echo $displayWeight; ?>kg hoy."</p></div>
-            <div class="card" id="card-routine">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div><h4 style="margin:0;">Rutina Activa</h4><p id="routine-name" style="margin:5px 0 0; font-size:12px; color:#888;">Nivel Intermedio</p></div>
-                    <button class="btn-upgrade" style="width:auto;" onclick="startWorkout()">Ver Rutina</button>
+            <div class="card" id="card-routine-chat" style="padding-bottom: 15px;">
+                <h4 style="margin:0 0 5px 0; color: var(--accent-color); font-size: 14px; letter-spacing: 1px;">💪 GENERADOR DE RUTINA</h4>
+                <p style="font-size: 11px; color: #888; margin-bottom: 15px;">Dime cuánto tiempo tienes y con qué equipo cuentas hoy.</p>
+                
+                <div id="home-chat-results" style="margin-bottom: 15px; display: none;"></div>
+
+                <div style="display:flex; gap:10px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 15px; border: 1px solid var(--glass);">
+                    <input type="text" id="home-chat-input" placeholder="Ej: 20 min, solo pesas..." style="margin-bottom:0; background: transparent; border: none; font-size: 14px; padding: 10px;">
+                    <button class="btn-upgrade" style="width:50px; border-radius: 12px;" onclick="sendHomeMessage()">➤</button>
                 </div>
             </div>
         </div>
@@ -426,6 +431,56 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             
             document.getElementById('ia-welcome-msg').innerText = welcomeMsg[role];
             document.getElementById('chat-box').innerHTML = `<div class="msg-ia" id="ia-welcome-msg">${welcomeMsg[role]}</div>`;
+        }
+
+        async function sendHomeMessage() {
+            const input = document.getElementById('home-chat-input');
+            const text = input.value.trim();
+            if(!text) return;
+
+            const resultsDiv = document.getElementById('home-chat-results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<div class="msg-ia" style="font-size: 12px; padding: 10px; margin-bottom: 0;">Generando rutina para ti... ⏳</div>';
+            input.value = '';
+
+            try {
+                const response = await fetch('coach_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text, role: 'entrenador' })
+                });
+                
+                const responseText = await response.text();
+                let resultText = "";
+
+                try {
+                    const result = JSON.parse(responseText);
+                    resultText = result.output || result.message || responseText;
+                } catch (e) {
+                    resultText = responseText;
+                }
+
+                // Detector de Rutina
+                const routineRegex = /\[ROUTINE_JSON\](.*?)\[\/ROUTINE_JSON\]/s;
+                const routineMatch = resultText.match(routineRegex);
+                let html = resultText.replace(routineRegex, '').substring(0, 150) + '...';
+
+                if (routineMatch) {
+                    const rawJson = routineMatch[1].trim();
+                    html = `
+                        <div class="msg-ia" style="font-size: 12px; padding: 12px; border-left: 3px solid var(--accent-color); background: rgba(232,118,26,0.05);">
+                            ${html}
+                            <button class="btn-upgrade" style="margin-top:10px; height: 35px; font-size: 13px;" onclick="loadRoutine(\`${rawJson.replace(/`/g, '\\`')}\`)">⚡ COMENZAR AHORA</button>
+                        </div>
+                    `;
+                } else {
+                    html = `<div class="msg-ia" style="font-size: 12px; padding: 10px;">${html}</div>`;
+                }
+
+                resultsDiv.innerHTML = html;
+            } catch (e) {
+                resultsDiv.innerHTML = '<div class="msg-ia" style="color: #ff4d4d;">Error al conectar con tu coach.</div>';
+            }
         }
 
         async function sendMessage() {
