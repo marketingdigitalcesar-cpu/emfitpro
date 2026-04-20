@@ -208,15 +208,34 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             </div>
         </div>
 
-        <!-- OVERLAY DE RUTINA -->
-        <div id="routine-overlay" class="lock-overlay hidden">
-            <h2 id="workout-title">Tu Rutina</h2>
-            <div id="exercises-list" style="margin:20px 0; text-align:left; width:100%;">
-                <p>🏋️ Squat - 4x12</p>
-                <p>🏋️ Lunges - 3x15</p>
-                <p>🏋️ Leg Press - 3x12</p>
+        <!-- WORKOUT INTERACTIVO -->
+        <div id="routine-overlay" class="lock-overlay hidden" style="background: rgba(12,12,12,0.98); backdrop-filter: blur(25px); align-items: flex-start; padding-top: 60px;">
+            <div style="padding: 0 25px; width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                    <div>
+                        <h2 style="margin:0; font-size: 28px; color: var(--accent-color);">Entrenamiento</h2>
+                        <p style="margin: 5px 0 0; color: #888; font-size: 14px;">Hoy: Pierna e Isquios</p>
+                    </div>
+                    <div id="workout-timer" style="font-family: monospace; font-size: 24px; font-weight: 700; color: white; background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 12px; border: 1px solid var(--glass);">00:00</div>
+                </div>
+
+                <div id="exercises-list" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
+                    <!-- Los ejercicios se cargarán dinámicamente -->
+                </div>
+
+                <div id="workout-finished-state" class="hidden" style="text-align: center; background: var(--glass); padding: 30px; border-radius: 24px; border: 1px solid var(--accent-color);">
+                    <div style="font-size: 50px; margin-bottom: 15px;">🏆</div>
+                    <h2 style="margin-bottom: 10px;">¡Entrenamiento Completado!</h2>
+                    <p style="color: #ccc; margin-bottom: 25px;">Has completado todos los ejercicios con éxito.</p>
+                    <button class="btn-upgrade" onclick="publishToCommunity()" style="background: white; color: black; margin-bottom: 15px;">Compartir en Comunidad 🤝</button>
+                    <button class="btn-upgrade" onclick="closeWorkout()" style="background: transparent; border: 1px solid var(--glass);">Solo Guardar</button>
+                </div>
+
+                <div id="active-actions" style="display: flex; gap: 15px;">
+                    <button class="btn-upgrade" onclick="closeWorkout()" style="background: rgba(255,255,255,0.05); color: #888; flex: 1;">Abandonar</button>
+                    <button id="btn-finish-workout" class="btn-upgrade" onclick="finishWorkout()" style="flex: 2; opacity: 0.5;" disabled>Finalizar</button>
+                </div>
             </div>
-            <button class="btn-upgrade" onclick="document.getElementById('routine-overlay').classList.add('hidden')">Cerrar</button>
         </div>
 
         <nav>
@@ -237,6 +256,81 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             document.getElementById('profile-drop').classList.remove('show');
         }
 
+        const exercises = [
+            { id: 1, name: "Squats", sets: "4x12", done: false },
+            { id: 2, name: "Lunges", sets: "3x15", done: false },
+            { id: 3, name: "Leg Press", sets: "3x12", done: false },
+            { id: 4, name: "Calf Raises", sets: "4x20", done: false }
+        ];
+
+        let timerInterval;
+        let seconds = 0;
+
+        function startWorkout() {
+            document.getElementById('routine-overlay').classList.remove('hidden');
+            renderExercises();
+            startTimer();
+        }
+
+        function renderExercises() {
+            const list = document.getElementById('exercises-list');
+            list.innerHTML = exercises.map(ex => `
+                <div class="card" style="margin: 0; padding: 15px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; border-color: ${ex.done ? 'var(--accent-color)' : 'var(--glass)'}; background: ${ex.done ? 'rgba(232,118,26,0.05)' : 'var(--card-bg)'};">
+                    <div>
+                        <h4 style="margin:0; text-decoration: ${ex.done ? 'line-through' : 'none'}; opacity: ${ex.done ? 0.5 : 1};">${ex.name}</h4>
+                        <p style="margin:5px 0 0; font-size:12px; color:#888;">${ex.sets}</p>
+                    </div>
+                    <button class="avatar-circle" style="width: 32px; height: 32px; border: none; background: ${ex.done ? 'var(--accent-color)' : 'transparent'}; border: 2px solid ${ex.done ? 'var(--accent-color)' : '#444'}; font-size: 16px; box-shadow: none;" onclick="toggleExercise(${ex.id})">
+                        ${ex.done ? '✓' : ''}
+                    </button>
+                </div>
+            `).join('');
+            
+            const allDone = exercises.every(e => e.done);
+            const btn = document.getElementById('btn-finish-workout');
+            btn.disabled = !allDone;
+            btn.style.opacity = allDone ? 1 : 0.5;
+        }
+
+        function toggleExercise(id) {
+            const ex = exercises.find(e => e.id === id);
+            if(ex) ex.done = !ex.done;
+            renderExercises();
+        }
+
+        function startTimer() {
+            seconds = 0;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                seconds++;
+                const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const s = (seconds % 60).toString().padStart(2, '0');
+                document.getElementById('workout-timer').innerText = `${m}:${s}`;
+            }, 1000);
+        }
+
+        function finishWorkout() {
+            clearInterval(timerInterval);
+            document.getElementById('exercises-list').classList.add('hidden');
+            document.getElementById('active-actions').classList.add('hidden');
+            document.getElementById('workout-finished-state').classList.remove('hidden');
+        }
+
+        function closeWorkout() {
+            clearInterval(timerInterval);
+            document.getElementById('routine-overlay').classList.add('hidden');
+            document.getElementById('exercises-list').classList.remove('hidden');
+            document.getElementById('active-actions').classList.remove('hidden');
+            document.getElementById('workout-finished-state').classList.add('hidden');
+            exercises.forEach(e => e.done = false); // Reset for next time
+        }
+
+        function publishToCommunity() {
+            const timeStr = document.getElementById('workout-timer').innerText;
+            alert(`¡Entrenamiento publicado en la comunidad! Tiempo total: ${timeStr}. Estás motivando a otros 🎉`);
+            closeWorkout();
+        }
+
         function sendMessage() {
             const input = document.getElementById('chat-input');
             const text = input.value.trim();
@@ -251,10 +345,6 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                 box.innerHTML += `<div class="msg-ia">Procesando tu consulta sobre "${text}"... Estoy analizando tus datos de IMC (<?php echo $imc;?>) para responderte.</div>`;
                 box.scrollTop = box.scrollHeight;
             }, 1000);
-        }
-
-        function startWorkout() {
-            document.getElementById('routine-overlay').classList.remove('hidden');
         }
 
         window.addEventListener('scroll', () => {
