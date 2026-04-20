@@ -496,19 +496,24 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                             return { id: i, name: name, sets: "1 serie" };
                         });
                         
-                        let checklistHtml = '<div style="margin-top:15px; background:rgba(255,255,255,0.05); padding:15px; border-radius:15px; border:1px solid var(--glass-heavy);">';
-                        checklistHtml += '<p style="color:var(--accent-color); font-weight:bold; font-size:12px; margin-bottom:10px;">📉 SEGUIMIENTO RÁPIDO:</p>';
+                        let checklistHtml = '<div id="mini-tracker-container" style="margin-top:15px; background:rgba(0,0,0,0.2); padding:15px; border-radius:15px; border:1px solid var(--accent-color);">';
+                        checklistHtml += '<p style="color:var(--accent-color); font-weight:bold; font-size:12px; margin-bottom:12px; display:flex; justify-content:space-between;"><span>📉 TU PROGRESO:</span> <span id="progress-count">0/'+guestRoutine.length+'</span></p>';
                         
                         guestRoutine.forEach((ex, idx) => {
                             checklistHtml += `
-                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; padding:5px; border-bottom:1px solid rgba(255,255,255,0.03);">
-                                    <input type="checkbox" id="check-home-${idx}" style="accent-color:var(--accent-color); width:18px; height:18px; cursor:pointer;">
-                                    <label for="check-home-${idx}" style="font-size:12px; color:#eee;">${ex.name}</label>
+                                <div class="home-ex-row" style="display:flex; align-items:center; gap:10px; margin-bottom:10px; transition: 0.3s;">
+                                    <input type="checkbox" id="check-home-${idx}" class="home-check" data-total="${guestRoutine.length}" style="accent-color:var(--accent-color); width:20px; height:20px; cursor:pointer;" onchange="updateHomeProgress()">
+                                    <label for="check-home-${idx}" style="font-size:13px; color:#fff; cursor:pointer;">${ex.name}</label>
                                 </div>
                             `;
                         });
                         
-                        checklistHtml += `<button class="btn-upgrade" style="margin-top:10px; height:35px; font-size:12px;" onclick="loadRoutine(\`${JSON.stringify(guestRoutine).replace(/"/g, '&quot;')}\`)">Ver Detalle / Cronómetro</button>`;
+                        checklistHtml += `
+                            <div id="finish-workout-area" style="display:none; margin-top:15px; padding-top:15px; border-top:1px dashed rgba(255,255,255,0.2);">
+                                <button class="btn-upgrade" style="background: var(--accent-color); color: white; width: 100%; height: 45px; font-weight: bold;" onclick="finishAndPublish()">🎯 FINALIZAR Y PUBLICAR</button>
+                            </div>
+                        `;
+                        checklistHtml += `<button id="btn-detail-view" class="btn-info" style="margin-top:10px; width:100%; border:1px solid rgba(255,255,255,0.1); font-size:11px;" onclick="loadRoutine(\`${JSON.stringify(guestRoutine).replace(/"/g, '&quot;')}\`)">Ver tutoriales y cronómetro ↗️</button>`;
                         checklistHtml += '</div>';
 
                         html = `<div class="msg-ia" style="font-size: 13px; padding: 15px; line-height: 1.5;">${formattedText}${checklistHtml}</div>`;
@@ -521,6 +526,38 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             } catch (e) {
                 resultsDiv.innerHTML = '<div class="msg-ia" style="color: #ff4d4d;">Error al conectar con tu coach.</div>';
             }
+        }
+
+        function updateHomeProgress() {
+            const checks = document.querySelectorAll('.home-check');
+            const checked = document.querySelectorAll('.home-check:checked');
+            const total = checks.length;
+            
+            document.getElementById('progress-count').innerText = `${checked.length}/${total}`;
+            
+            const area = document.getElementById('finish-workout-area');
+            const btnDetail = document.getElementById('btn-detail-view');
+            
+            if (checked.length === total) {
+                area.style.display = 'block';
+                btnDetail.style.display = 'none';
+                confettiEffect();
+            } else {
+                area.style.display = 'none';
+                btnDetail.style.display = 'block';
+            }
+        }
+
+        function confettiEffect() {
+            // Simple visual feedback
+            const container = document.getElementById('mini-tracker-container');
+            container.style.borderColor = '#4CAF50';
+            container.style.boxShadow = '0 0 20px rgba(76, 175, 80, 0.3)';
+        }
+
+        async function finishAndPublish() {
+            alert('¡FELICIDADES! 🎉 Tu rutina ha sido completada y publicada en la comunidad.');
+            location.reload(); // Por ahora refrescamos para limpiar, pero aquí iría el guardado en DB
         }
 
         async function sendMessage() {
