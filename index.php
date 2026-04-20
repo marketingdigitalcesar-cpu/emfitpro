@@ -159,7 +159,10 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                     <div class="avatar-circle" onclick="toggleDropdown()"><?php $words = explode(' ', $displayName); echo strtoupper($words[0][0].($words[1][0]??'')); ?></div>
                     <div id="profile-drop" class="dropdown-content"><a href="javascript:void(0)" onclick="switchScreen('settings', this)">⚙️ Perfil</a><a href="logout.php">🚪 Salir</a></div>
                 </div>
-                <div><h2 style="font-size:16px; margin:0;">Hola, <?php echo htmlspecialchars(explode(' ', $displayName)[0]); ?>!</h2><span class="plan-tag">PRO</span></div>
+                <div><h2 style="font-size:16px; margin:0;">Hola, <?php echo htmlspecialchars(explode(' ', $displayName)[0]); ?>!</h2>
+                <span class="plan-tag" style="background: <?php echo ($userData['plan'] === 'pro') ? 'var(--accent-color)' : '#666'; ?>;">
+                    <?php echo strtoupper($userData['plan'] ?? 'GRATIS'); ?>
+                </span></div>
             </div>
             <div style="font-size:22px;">🔔</div>
         </header>
@@ -173,14 +176,21 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             <div class="card" style="background: linear-gradient(135deg, #2c1a0a 0%, #1a1a1a 100%);"><h3>🗣️ CONSEJO IA</h3><p style="font-size: 14px;">"Optimicemos tus <?php echo $displayWeight; ?>kg hoy."</p></div>
             <div class="card" id="card-routine-chat" style="padding-bottom: 15px;">
                 <h4 style="margin:0 0 5px 0; color: var(--accent-color); font-size: 14px; letter-spacing: 1px;">💪 GENERADOR DE RUTINA</h4>
-                <p style="font-size: 11px; color: #888; margin-bottom: 15px;">Dime cuánto tiempo tienes y con qué equipo cuentas hoy.</p>
-                
-                <div id="home-chat-results" style="margin-bottom: 15px; display: none;"></div>
-
-                <div style="display:flex; gap:10px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 15px; border: 1px solid var(--glass);">
-                    <input type="text" id="home-chat-input" placeholder="Ej: 20 min, solo pesas..." style="margin-bottom:0; background: transparent; border: none; font-size: 14px; padding: 10px;">
-                    <button class="btn-upgrade" style="width:50px; border-radius: 12px;" onclick="sendHomeMessage()">➤</button>
-                </div>
+                <?php if (($userData['plan'] ?? 'gratis') === 'pro'): ?>
+                    <p style="font-size: 11px; color: #888; margin-bottom: 15px;">Dime cuánto tiempo tienes y con qué equipo cuentas hoy.</p>
+                    <div id="home-chat-results" style="margin-bottom: 15px; display: none;"></div>
+                    <div style="display:flex; gap:10px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 15px; border: 1px solid var(--glass);">
+                        <input type="text" id="home-chat-input" placeholder="Ej: 20 min, solo pesas..." style="margin-bottom:0; background: transparent; border: none; font-size: 14px; padding: 10px;">
+                        <button class="btn-upgrade" style="width:50px; border-radius: 12px;" onclick="sendHomeMessage()">➤</button>
+                    </div>
+                <?php else: ?>
+                    <div style="padding: 10px 0; text-align: center;">
+                        <p style="font-size: 11px; color: #aaa; margin-bottom: 15px;">Personaliza tu rutina con el Coach IA siendo <b>PRO</b>.</p>
+                        <button class="btn-upgrade" style="margin-bottom: 10px;" onclick="loadFreeRoutine()">⚡ USAR RUTINA GRATIS DEL DÍA</button>
+                        <br>
+                        <button class="btn-info" onclick="switchScreen('settings', null)" style="background: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); font-size: 11px; padding: 5px 12px;">✨ SUBIR A PLAN PRO</button>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -494,6 +504,16 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             
             document.getElementById('ia-welcome-msg').innerText = welcomeMsg[role];
             document.getElementById('chat-box').innerHTML = `<div class="msg-ia" id="ia-welcome-msg">${welcomeMsg[role]}</div>`;
+        }
+
+        function loadFreeRoutine() {
+            const freeRoutine = [
+                { name: "Sentadillas Clásicas", sets: "3x15", description: "Baja la cadera manteniendo la espalda recta." },
+                { name: "Flexiones de Brazo", sets: "3x12", description: "Mantén el cuerpo alineado como una tabla." },
+                { name: "Zancadas Alternas", sets: "3x10 (por pierna)", description: "Haz un paso largo y baja la rodilla trasera." },
+                { name: "Plancha Abdominal", sets: "3x30 seg", description: "Apóyate en los antebrazos y mantén el abdomen fuerte." }
+            ];
+            loadRoutine(freeRoutine);
         }
 
         async function sendHomeMessage() {
