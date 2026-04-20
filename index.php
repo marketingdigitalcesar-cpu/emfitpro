@@ -270,12 +270,51 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             document.getElementById('profile-drop').classList.remove('show');
         }
 
-        const exercises = [
-            { id: 1, name: "Squats", sets: "4x12", done: false },
-            { id: 2, name: "Lunges", sets: "3x15", done: false },
-            { id: 3, name: "Leg Press", sets: "3x12", done: false },
-            { id: 4, name: "Calf Raises", sets: "4x20", done: false }
-        ];
+        let exercises = []; // Ahora es dinámico
+
+        function renderExercises() {
+            const list = document.getElementById('exercises-list');
+            if (exercises.length === 0) {
+                list.innerHTML = '<p style="text-align:center; color:#888;">No hay ejercicios cargados.</p>';
+                return;
+            }
+            list.innerHTML = exercises.map((ex, index) => `
+                <div class="card" style="margin: 0; padding: 15px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; border-color: ${ex.done ? 'var(--accent-color)' : 'var(--glass)'}; background: ${ex.done ? 'rgba(232,118,26,0.05)' : 'var(--card-bg)'};">
+                    <div>
+                        <h4 style="margin:0; text-decoration: ${ex.done ? 'line-through' : 'none'}; opacity: ${ex.done ? 0.5 : 1};">${ex.name}</h4>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                            <span style="font-size:12px; color:#888;">${ex.sets || ''}</span>
+                            <button class="btn-info" onclick="showExerciseInfo('${ex.name}')"><span>🎥</span> Info</button>
+                        </div>
+                    </div>
+                    <button class="avatar-circle" style="width: 32px; height: 32px; border: none; background: ${ex.done ? 'var(--accent-color)' : 'transparent'}; border: 2px solid ${ex.done ? 'var(--accent-color)' : '#444'}; font-size: 16px; box-shadow: none;" onclick="toggleExercise(${index})">
+                        ${ex.done ? '✓' : ''}
+                    </button>
+                </div>
+            `).join('');
+            
+            const allDone = exercises.length > 0 && exercises.every(e => e.done);
+            const btn = document.getElementById('btn-finish-workout');
+            btn.disabled = !allDone;
+            btn.style.opacity = allDone ? 1 : 0.5;
+        }
+
+        function loadRoutine(routineData) {
+            try {
+                // Si viene como string, intentar parsear
+                const parsed = typeof routineData === 'string' ? JSON.parse(routineData) : routineData;
+                exercises = parsed.map((ex, i) => ({
+                    id: i,
+                    name: ex.name,
+                    sets: ex.sets || ex.series || "",
+                    done: false
+                }));
+                startWorkout();
+            } catch (e) {
+                console.error("Error cargando rutina:", e);
+                alert("Hubo un error al procesar la rutina de la IA.");
+            }
+        }
 
         let timerInterval;
         let seconds = 0;
@@ -284,29 +323,6 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             document.getElementById('routine-overlay').classList.remove('hidden');
             renderExercises();
             startTimer();
-        }
-
-        function renderExercises() {
-            const list = document.getElementById('exercises-list');
-            list.innerHTML = exercises.map(ex => `
-                <div class="card" style="margin: 0; padding: 15px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; border-color: ${ex.done ? 'var(--accent-color)' : 'var(--glass)'}; background: ${ex.done ? 'rgba(232,118,26,0.05)' : 'var(--card-bg)'};">
-                    <div>
-                        <h4 style="margin:0; text-decoration: ${ex.done ? 'line-through' : 'none'}; opacity: ${ex.done ? 0.5 : 1};">${ex.name}</h4>
-                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
-                            <span style="font-size:12px; color:#888;">${ex.sets}</span>
-                            <button class="btn-info" onclick="showExerciseInfo('${ex.name}')"><span>🎥</span> Info</button>
-                        </div>
-                    </div>
-                    <button class="avatar-circle" style="width: 32px; height: 32px; border: none; background: ${ex.done ? 'var(--accent-color)' : 'transparent'}; border: 2px solid ${ex.done ? 'var(--accent-color)' : '#444'}; font-size: 16px; box-shadow: none;" onclick="toggleExercise(${ex.id})">
-                        ${ex.done ? '✓' : ''}
-                    </button>
-                </div>
-            `).join('');
-            
-            const allDone = exercises.every(e => e.done);
-            const btn = document.getElementById('btn-finish-workout');
-            btn.disabled = !allDone;
-            btn.style.opacity = allDone ? 1 : 0.5;
         }
 
         async function showExerciseInfo(name) {
@@ -343,9 +359,8 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             document.getElementById('modal-video').innerHTML = '';
         }
 
-        function toggleExercise(id) {
-            const ex = exercises.find(e => e.id === id);
-            if(ex) ex.done = !ex.done;
+        function toggleExercise(index) {
+            if(exercises[index]) exercises[index].done = !exercises[index].done;
             renderExercises();
         }
 
@@ -438,12 +453,28 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                     resultText = responseText;
                 }
 
-                const formattedResponse = (resultText || "El coach ha retornado una respuesta vacía. Revisa la configuración en n8n.")
+                let formattedResponse = (resultText || "El coach ha retornado una respuesta vacía. Revisa la configuración en n8n.")
                     .replace(/[&<>"']/g, m => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'}[m]))
                     .replace(/### (.*?)(<br>|\n|$)/g, '<h3 style="margin: 10px 0 5px 0; font-size: 1.1rem; color: #ff8c00; font-weight: 700;">$1</h3>')
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                     .replace(/\n- /g, '<br>• ')
                     .replace(/\n/g, '<br>');
+
+                // Detectar si hay un bloque de rutina JSON
+                const routineRegex = /\[ROUTINE_JSON\](.*?)\[\/ROUTINE_JSON\]/s;
+                const routineMatch = resultText.match(routineRegex);
+                
+                if (routineMatch) {
+                    const rawJson = routineMatch[1].trim();
+                    // Limpiar el texto para que no muestre el JSON crudo pero sí el botón
+                    formattedResponse = formattedResponse.replace(routineRegex, '');
+                    formattedResponse += `
+                        <div style="margin-top: 15px; background: rgba(232,118,26,0.1); padding: 15px; border-radius: 15px; border: 1px dashed var(--accent-color); text-align: center;">
+                            <p style="margin:0 0 10px 0; font-weight: 700; color: var(--accent-color);">✨ ¡Rutina Generada!</p>
+                            <button class="btn-upgrade" onclick="loadRoutine(\`${rawJson.replace(/`/g, '\\`')}\`)">🔥 COMENZAR ENTRENAMIENTO</button>
+                        </div>
+                    `;
+                }
 
                 loadingEl.innerHTML = formattedResponse;
             } catch (e) {
