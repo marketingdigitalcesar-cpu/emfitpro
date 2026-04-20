@@ -352,7 +352,13 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                 desc.innerText = data.description;
                 
                 if (data.video_url.includes('youtube.com/embed')) {
-                    video.innerHTML = `<iframe src="${data.video_url}" allowfullscreen></iframe>`;
+                    const videoId = data.video_url.split('/').pop().split('?')[0];
+                    video.innerHTML = `
+                        <iframe src="${data.video_url}" allowfullscreen></iframe>
+                        <div style="position: absolute; bottom: 10px; right: 10px; z-index: 10;">
+                            <a href="https://youtube.com/watch?v=${videoId}" target="_blank" class="btn-info" style="background:#000; padding: 4px 8px;">↗️ Abrir App</a>
+                        </div>
+                    `;
                 } else {
                     video.innerHTML = `<div style="padding: 20px; text-align: center;"><a href="${data.video_url}" target="_blank" style="color: var(--accent-color); text-decoration: none;">Ver video en YouTube ↗️</a></div>`;
                 }

@@ -488,11 +488,13 @@ nav {
     background: #111;
     border: 1px solid var(--glass-heavy);
     border-radius: 32px;
-    width: 100%;
+    width: 92%; /* Ajuste para que no toque los bordes en celular */
     max-width: 450px;
-    padding: 30px;
+    padding: 25px;
     position: relative;
     animation: slideInUp 0.3s ease-out;
+    max-height: 90vh; /* Para que no se salga de la pantalla en móviles cortos */
+    overflow-y: auto;
 }
 
 .close-modal {
