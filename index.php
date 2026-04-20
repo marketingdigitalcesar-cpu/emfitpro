@@ -379,23 +379,26 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                 });
                 
                 const loadingEl = document.getElementById(loadingId);
+                const responseText = await response.text();
                 let resultText = "";
                 
-                const contentType = response.headers.get("content-type");
-                if (contentType && contentType.indexOf("application/json") !== -1) {
-                    const result = await response.json();
+                console.log("Coach Response Raw:", responseText);
+
+                try {
+                    const result = JSON.parse(responseText);
                     resultText = result.output || 
                                  (result.choices && result.choices[0].message ? result.choices[0].message.content : null) || 
                                  result.message ||
-                                 JSON.stringify(result);
-                } else {
-                    resultText = await response.text();
+                                 result.error ||
+                                 responseText;
+                } catch (e) {
+                    resultText = responseText;
                 }
 
-                loadingEl.innerText = resultText || "El coach no ha podido responder en este momento.";
+                loadingEl.innerText = resultText || "El coach ha retornado una respuesta vacía. Revisa la configuración en n8n.";
             } catch (e) {
-                console.error("Error AI:", e);
-                document.getElementById(loadingId).innerText = "Error de conexión con el coach.";
+                console.error("Error Crítico AI:", e);
+                document.getElementById(loadingId).innerText = "No se pudo conectar con el servidor del coach.";
             }
             box.scrollTop = box.scrollHeight;
         }
