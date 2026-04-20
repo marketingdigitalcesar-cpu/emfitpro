@@ -184,7 +184,12 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             </div>
         </div>
 
-        <div id="screen-social" class="screen hidden"><div class="card"><h3>🤝 COMUNIDAD</h3><p>Muro social en desarrollo.</p></div></div>
+        <div id="screen-social" class="screen hidden">
+            <h3 style="margin: 0 0 15px 15px;">Comunidad Emfitpro</h3>
+            <div id="social-feed" style="padding: 0 15px;">
+                <div style="text-align:center; padding:20px; color:#666;">Cargando novedades...</div>
+            </div>
+        </div>
 
         <!-- COACH AI SCREEN (CON CHAT FUNCIONAL) -->
         <div id="screen-coach" class="screen hidden">
@@ -278,6 +283,30 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             if(el) el.classList.add('active');
             document.getElementById('profile-drop').classList.remove('show');
+            if (id === 'social') loadSocialFeed();
+        }
+
+        async function loadSocialFeed() {
+            const feed = document.getElementById('social-feed');
+            try {
+                const response = await fetch('social_api.php');
+                const posts = await response.json();
+                if (posts.length === 0) {
+                    feed.innerHTML = '<div class="card" style="text-align:center; color:#888;">Nadie ha publicado hoy. ¡Sé el primero!</div>';
+                    return;
+                }
+                feed.innerHTML = posts.map(post => `
+                    <div class="card" style="margin-bottom:15px; border-left: 3px solid var(--accent-color); padding: 15px;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <strong style="color:var(--accent-color); font-size: 14px;">${post.user_name}</strong>
+                            <small style="color:#555; font-size:10px;">${new Date(post.created_at).toLocaleTimeString()}</small>
+                        </div>
+                        <p style="margin:8px 0 0; font-size:13px; line-height:1.4;">${post.content}</p>
+                    </div>
+                `).join('');
+            } catch (e) {
+                feed.innerHTML = '<div class="card" style="color:red;">Error al cargar el muro.</div>';
+            }
         }
 
         let exercises = [
@@ -410,10 +439,23 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             exercises.forEach(e => e.done = false); // Reset for next time
         }
 
-        function publishToCommunity() {
+        async function publishToCommunity() {
             const timeStr = document.getElementById('workout-timer').innerText;
-            alert(`¡Entrenamiento publicado en la comunidad! Tiempo total: ${timeStr}. Estás motivando a otros 🎉`);
-            closeWorkout();
+            const count = exercises.filter(e => e.done).length;
+            const content = `🔥 ¡Acabo de completar un entrenamiento de ${count} ejercicios en ${timeStr}! ¡Vamos con toda!`;
+
+            try {
+                await fetch('social_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'post_workout', content: content })
+                });
+                alert('¡Publicado con éxito! 🏆');
+                closeWorkout();
+                switchScreen('social', document.querySelector('.nav-item:nth-child(2)'));
+            } catch (e) {
+                alert('Error al publicar.');
+            }
         }
 
         let currentRole = 'entrenador';
@@ -556,8 +598,22 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
         }
 
         async function finishAndPublish() {
-            alert('¡FELICIDADES! 🎉 Tu rutina ha sido completada y publicada en la comunidad.');
-            location.reload(); // Por ahora refrescamos para limpiar, pero aquí iría el guardado en DB
+            const checks = document.querySelectorAll('.home-check:checked');
+            const total = document.querySelectorAll('.home-check').length;
+            const content = `🔥 ¡He completado una rutina de ${total} ejercicios con mi Coach IA de Emfitpro!`;
+
+            try {
+                await fetch('social_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'post_workout', content: content })
+                });
+                
+                alert('¡FELICIDADES! 🎉 Tu victoria ha sido publicada en la comunidad.');
+                switchScreen('social', document.querySelectorAll('.nav-item')[1]);
+            } catch (e) {
+                alert('Logro completado, pero no se pudo publicar en el muro.');
+            }
         }
 
         async function sendMessage() {

@@ -79,6 +79,16 @@ if ($check->num_rows == 0) {
     ('Peso Muerto', 'Mantén la barra pegada a tus piernas y la espalda neutra durante todo el movimiento.', 'https://www.youtube.com/embed/r4MzxtBKyNE', 'Espalda')");
 }
 
+// Crear tabla de Comunidad
+$conn->query("CREATE TABLE IF NOT EXISTS community_posts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    user_name VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    type VARCHAR(50) DEFAULT 'workout',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)");
+
 if (!function_exists('triggerWelcomeToN8N')) {
     function triggerWelcomeToN8N($data) {
         $options = [
