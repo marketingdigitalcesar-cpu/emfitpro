@@ -486,24 +486,32 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                         </div>
                     `;
                 } else {
-                    // INTELIGENCIA EXTRA: Intentar detectar listas numeradas si no hay JSON
-                    const listMatches = textToDisplay.match(/^\d+\.\s+.*$/gm);
-                    if (listMatches && listMatches.length >= 2) {
-                        const guestRoutine = listMatches.map(item => {
-                            const clean = item.replace(/^\d+\.\s+/, '').replace(/\*\*+/g, '').trim();
-                            const parts = clean.split('\n')[0].split('(')[0];
-                            return { name: parts.trim(), sets: "Ver detalle arriba" };
+                    // DETECTOR ULTRA-LIBERAL DE EJERCICIOS
+                    const listRegex = /(?:\n|^)(\d+[\.\)]\s+)(.*?)(?:\n|$)/g;
+                    const listMatches = [...textToDisplay.matchAll(listRegex)];
+                    
+                    if (listMatches.length >= 2) {
+                        const guestRoutine = listMatches.map((m, i) => {
+                            const name = m[2].split('\n')[0].split('(')[0].replace(/\*\*+/g, '').replace(/:$/, '').trim();
+                            return { id: i, name: name, sets: "1 serie" };
                         });
                         
-                        html = `
-                            <div class="msg-ia" style="font-size: 13px; padding: 15px; border-radius: 18px; line-height: 1.5;">
-                                ${formattedText}
-                                <div style="margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 15px; border: 1px dashed var(--accent-color); text-align: center;">
-                                    <p style="margin:0 0 10px 0; font-size: 12px; color: var(--accent-color);">✨ He detectado una rutina en la lista anterior</p>
-                                    <button class="btn-upgrade" style="height: 40px; font-size: 13px;" onclick="loadRoutine(\`${JSON.stringify(guestRoutine).replace(/"/g, '&quot;')}\`)">🏃‍♂️ INICIAR ESTA RUTINA</button>
+                        let checklistHtml = '<div style="margin-top:15px; background:rgba(255,255,255,0.05); padding:15px; border-radius:15px; border:1px solid var(--glass-heavy);">';
+                        checklistHtml += '<p style="color:var(--accent-color); font-weight:bold; font-size:12px; margin-bottom:10px;">📉 SEGUIMIENTO RÁPIDO:</p>';
+                        
+                        guestRoutine.forEach((ex, idx) => {
+                            checklistHtml += `
+                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; padding:5px; border-bottom:1px solid rgba(255,255,255,0.03);">
+                                    <input type="checkbox" id="check-home-${idx}" style="accent-color:var(--accent-color); width:18px; height:18px; cursor:pointer;">
+                                    <label for="check-home-${idx}" style="font-size:12px; color:#eee;">${ex.name}</label>
                                 </div>
-                            </div>
-                        `;
+                            `;
+                        });
+                        
+                        checklistHtml += `<button class="btn-upgrade" style="margin-top:10px; height:35px; font-size:12px;" onclick="loadRoutine(\`${JSON.stringify(guestRoutine).replace(/"/g, '&quot;')}\`)">Ver Detalle / Cronómetro</button>`;
+                        checklistHtml += '</div>';
+
+                        html = `<div class="msg-ia" style="font-size: 13px; padding: 15px; line-height: 1.5;">${formattedText}${checklistHtml}</div>`;
                     } else {
                         html = `<div class="msg-ia" style="font-size: 13px; padding: 15px; line-height: 1.5;">${formattedText}</div>`;
                     }
