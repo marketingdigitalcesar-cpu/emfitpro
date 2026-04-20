@@ -291,10 +291,17 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             try {
                 const response = await fetch('social_api.php');
                 const posts = await response.json();
-                if (posts.length === 0) {
+                
+                if (posts.error) {
+                    feed.innerHTML = `<div class="card" style="color:#ff6b6b; border: 1px solid #ff4d4d; font-size:12px;">⚠️ Error del servidor: ${posts.error}</div>`;
+                    return;
+                }
+
+                if (!Array.isArray(posts) || posts.length === 0) {
                     feed.innerHTML = '<div class="card" style="text-align:center; color:#888;">Nadie ha publicado hoy. ¡Sé el primero!</div>';
                     return;
                 }
+
                 feed.innerHTML = posts.map(post => `
                     <div class="card" style="margin-bottom:15px; border-left: 3px solid var(--accent-color); padding: 15px;">
                         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
@@ -305,7 +312,7 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                     </div>
                 `).join('');
             } catch (e) {
-                feed.innerHTML = '<div class="card" style="color:red;">Error al cargar el muro.</div>';
+                feed.innerHTML = `<div class="card" style="color:#ff6b6b; font-size:12px;">❌ Fallo crítico al conectar: ${e.message}</div>`;
             }
         }
 
