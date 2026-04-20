@@ -486,34 +486,34 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                         </div>
                     `;
                 } else {
-                    // DETECTOR ULTRA-LIBERAL DE EJERCICIOS
-                    const listRegex = /(?:\n|^)(\d+[\.\)]\s+)(.*?)(?:\n|$)/g;
-                    const listMatches = [...textToDisplay.matchAll(listRegex)];
+                    // DETECTOR DE FUERZA BRUTA (Extremadamente liberal)
+                    const bruteForceRegex = /(\d+)[\.\)]\s+([^\n]+)/g;
+                    const matches = [...textToDisplay.matchAll(bruteForceRegex)];
                     
-                    if (listMatches.length >= 2) {
-                        const guestRoutine = listMatches.map((m, i) => {
-                            const name = m[2].split('\n')[0].split('(')[0].replace(/\*\*+/g, '').replace(/:$/, '').trim();
-                            return { id: i, name: name, sets: "1 serie" };
+                    if (matches.length >= 2) {
+                        const guestRoutine = matches.map((m, i) => {
+                            // Limpiar el nombre de asteriscos, paréntesis y otros adornos
+                            const cleanName = m[2].replace(/\*\*+/g, '').split('(')[0].replace(/:$/, '').trim();
+                            return { id: i, name: cleanName, sets: "1 serie" };
                         });
                         
-                        let checklistHtml = '<div id="mini-tracker-container" style="margin-top:15px; background:rgba(0,0,0,0.2); padding:15px; border-radius:15px; border:1px solid var(--accent-color);">';
-                        checklistHtml += '<p style="color:var(--accent-color); font-weight:bold; font-size:12px; margin-bottom:12px; display:flex; justify-content:space-between;"><span>📉 TU PROGRESO:</span> <span id="progress-count">0/'+guestRoutine.length+'</span></p>';
+                        let checklistHtml = '<div id="mini-tracker-container" style="margin-top:15px; background:rgba(0,0,0,0.3); padding:15px; border-radius:15px; border:2px solid var(--accent-color);">';
+                        checklistHtml += '<p style="color:var(--accent-color); font-weight:bold; font-size:12px; margin-bottom:12px; display:flex; justify-content:space-between;"><span>📉 TU RUTINA DETECTADA:</span> <span id="progress-count">0/'+guestRoutine.length+'</span></p>';
                         
                         guestRoutine.forEach((ex, idx) => {
                             checklistHtml += `
-                                <div class="home-ex-row" style="display:flex; align-items:center; gap:10px; margin-bottom:10px; transition: 0.3s;">
-                                    <input type="checkbox" id="check-home-${idx}" class="home-check" data-total="${guestRoutine.length}" style="accent-color:var(--accent-color); width:20px; height:20px; cursor:pointer;" onchange="updateHomeProgress()">
-                                    <label for="check-home-${idx}" style="font-size:13px; color:#fff; cursor:pointer;">${ex.name}</label>
+                                <div class="home-ex-row" style="display:flex; align-items:center; gap:12px; margin-bottom:12px; padding:8px; background:rgba(255,255,255,0.03); border-radius:8px;">
+                                    <input type="checkbox" id="check-home-${idx}" class="home-check" style="accent-color:var(--accent-color); width:22px; height:22px; cursor:pointer;" onchange="updateHomeProgress()">
+                                    <label for="check-home-${idx}" style="font-size:13px; color:#fff; cursor:pointer; font-weight:500;">${ex.name}</label>
                                 </div>
                             `;
                         });
                         
                         checklistHtml += `
                             <div id="finish-workout-area" style="display:none; margin-top:15px; padding-top:15px; border-top:1px dashed rgba(255,255,255,0.2);">
-                                <button class="btn-upgrade" style="background: var(--accent-color); color: white; width: 100%; height: 45px; font-weight: bold;" onclick="finishAndPublish()">🎯 FINALIZAR Y PUBLICAR</button>
+                                <button class="btn-upgrade" style="background: var(--accent-color); color: white; width: 100%; height: 48px; font-weight: bold; font-size:16px;" onclick="finishAndPublish()">🎯 FINALIZAR Y PUBLICAR</button>
                             </div>
                         `;
-                        checklistHtml += `<button id="btn-detail-view" class="btn-info" style="margin-top:10px; width:100%; border:1px solid rgba(255,255,255,0.1); font-size:11px;" onclick="loadRoutine(\`${JSON.stringify(guestRoutine).replace(/"/g, '&quot;')}\`)">Ver tutoriales y cronómetro ↗️</button>`;
                         checklistHtml += '</div>';
 
                         html = `<div class="msg-ia" style="font-size: 13px; padding: 15px; line-height: 1.5;">${formattedText}${checklistHtml}</div>`;
