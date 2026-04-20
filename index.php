@@ -246,12 +246,18 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             </div>
         </div>
 
-        <nav>
-            <a href="javascript:void(0)" class="nav-item active" onclick="switchScreen('home', this)"><span>🏠</span><span>Inicio</span></a>
-            <a href="javascript:void(0)" class="nav-item" onclick="switchScreen('social', this)"><span>🤝</span><span>Social</span></a>
-            <a href="javascript:void(0)" class="nav-item" onclick="switchScreen('coach', this)"><span>🤖</span><span>Coach</span></a>
-            <a href="javascript:void(0)" class="nav-item" onclick="switchScreen('progress', this)"><span>📊</span><span>Progreso</span></a>
         </nav>
+
+        <!-- MODAL DE EJERCICIO -->
+        <div id="exercise-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+                <h2 id="modal-title" style="color: var(--accent-color); margin: 0;"></h2>
+                <div id="modal-video" class="video-container"></div>
+                <div id="modal-description" style="color: #ccc; line-height: 1.6; font-size: 14px;"></div>
+                <button class="btn-upgrade" onclick="closeModal()" style="margin-top: 20px;">Entendido</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -286,7 +292,10 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                 <div class="card" style="margin: 0; padding: 15px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; border-color: ${ex.done ? 'var(--accent-color)' : 'var(--glass)'}; background: ${ex.done ? 'rgba(232,118,26,0.05)' : 'var(--card-bg)'};">
                     <div>
                         <h4 style="margin:0; text-decoration: ${ex.done ? 'line-through' : 'none'}; opacity: ${ex.done ? 0.5 : 1};">${ex.name}</h4>
-                        <p style="margin:5px 0 0; font-size:12px; color:#888;">${ex.sets}</p>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                            <span style="font-size:12px; color:#888;">${ex.sets}</span>
+                            <button class="btn-info" onclick="showExerciseInfo('${ex.name}')"><span>🎥</span> Info</button>
+                        </div>
                     </div>
                     <button class="avatar-circle" style="width: 32px; height: 32px; border: none; background: ${ex.done ? 'var(--accent-color)' : 'transparent'}; border: 2px solid ${ex.done ? 'var(--accent-color)' : '#444'}; font-size: 16px; box-shadow: none;" onclick="toggleExercise(${ex.id})">
                         ${ex.done ? '✓' : ''}
@@ -298,6 +307,40 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             const btn = document.getElementById('btn-finish-workout');
             btn.disabled = !allDone;
             btn.style.opacity = allDone ? 1 : 0.5;
+        }
+
+        async function showExerciseInfo(name) {
+            const modal = document.getElementById('exercise-modal');
+            const title = document.getElementById('modal-title');
+            const video = document.getElementById('modal-video');
+            const desc = document.getElementById('modal-description');
+            
+            title.innerText = 'Cargando...';
+            video.innerHTML = '';
+            desc.innerText = '';
+            modal.style.display = 'flex';
+            
+            try {
+                const res = await fetch(`get_exercise_details.php?name=${encodeURIComponent(name)}`);
+                const data = await res.json();
+                
+                title.innerText = data.name;
+                desc.innerText = data.description;
+                
+                if (data.video_url.includes('youtube.com/embed')) {
+                    video.innerHTML = `<iframe src="${data.video_url}" allowfullscreen></iframe>`;
+                } else {
+                    video.innerHTML = `<div style="padding: 20px; text-align: center;"><a href="${data.video_url}" target="_blank" style="color: var(--accent-color); text-decoration: none;">Ver video en YouTube ↗️</a></div>`;
+                }
+            } catch (e) {
+                title.innerText = 'Error';
+                desc.innerText = 'No se pudo cargar la información.';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('exercise-modal').style.display = 'none';
+            document.getElementById('modal-video').innerHTML = '';
         }
 
         function toggleExercise(id) {

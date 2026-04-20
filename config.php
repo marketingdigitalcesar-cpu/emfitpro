@@ -60,6 +60,25 @@ $conn->query("CREATE TABLE IF NOT EXISTS user_coach_data (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 )");
 
+// Tabla Biblioteca de Ejercicios
+$conn->query("CREATE TABLE IF NOT EXISTS exercise_library (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) UNIQUE,
+    description TEXT,
+    video_url VARCHAR(255),
+    muscle_group VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)");
+
+// Insertar algunos ejemplos si la tabla está vacía
+$check = $conn->query("SELECT id FROM exercise_library LIMIT 1");
+if ($check->num_rows == 0) {
+    $conn->query("INSERT INTO exercise_library (name, description, video_url, muscle_group) VALUES 
+    ('Sentadilla Libre', 'Mantén la espalda recta y baja la cadera hasta que tus muslos estén paralelos al suelo.', 'https://www.youtube.com/embed/InVCP7870-U', 'Piernas'),
+    ('Press de Banca', 'Empuja la barra hacia arriba manteniendo los codos a 45 grados de tu cuerpo.', 'https://www.youtube.com/embed/v6I6v-2yVPE', 'Pecho'),
+    ('Peso Muerto', 'Mantén la barra pegada a tus piernas y la espalda neutra durante todo el movimiento.', 'https://www.youtube.com/embed/Y1IGeJEXpSk', 'Espalda')");
+}
+
 if (!function_exists('triggerWelcomeToN8N')) {
     function triggerWelcomeToN8N($data) {
         $options = [
