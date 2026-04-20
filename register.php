@@ -11,6 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($stmt->execute()) {
         $_SESSION['user_id'] = $stmt->insert_id;
+        // Disparar flujo de bienvenida en n8n
+        triggerWelcomeToN8N(['name' => $name, 'email' => $email, 'userId' => $_SESSION['user_id']]);
         header("Location: complete_profile.php");
     } else {
         echo "Error: " . $stmt->error;
@@ -23,33 +25,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <title>Registro - emfitpro</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        body { display: flex; align-items: center; justify-content: center; height: 100vh; }
-        .form-card { width: 100%; max-width: 350px; background: var(--card-bg); padding: 30px; border-radius: 20px; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 10px; border: 1px solid var(--glass); background: #000; color: white; }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="form-card">
-        <div style="text-align:center; margin-bottom:20px;">
-            <h2 style="margin-bottom:5px;">Únete a emfitpro</h2>
-            <div style="display:inline-block; background:rgba(232, 118, 26, 0.2); color:var(--accent-color); padding:5px 12px; border-radius:10px; font-size:12px; font-weight:700; border:1px solid var(--accent-color);">
-                🎁 10 DÍAS DE PRO GRATIS
+    <div class="hero-bg-fixed" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=1500') center/cover;"></div>
+    <div class="overlay-gradient-fixed"></div>
+    <div class="app-container" style="display: flex; align-items: center; justify-content: center; padding-bottom: 20px;">
+        <div class="card" style="width: 100%; max-width: 400px; margin: 0; background: #1a1a1a; border: 1px solid rgba(255,255,255,0.05);">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <span class="promo-badge">🎁 10 DÍAS PLAN PRO GRATIS</span>
+                <h2 style="color: white; margin-top: 0;">Únete a emfitpro</h2>
             </div>
-        </div>
-        <form method="POST">
-            <input type="text" name="name" placeholder="Tu Nombre" required>
-            <input type="email" name="email" placeholder="Email" required>
-            <input type="password" name="password" placeholder="Contraseña" required>
-            <button class="btn-upgrade" style="width:100%" type="submit">Crear Cuenta</button>
+            <form method="POST">
+                <input type="text" name="name" placeholder="Tu Nombre" required>
+                <input type="email" name="email" placeholder="Email" required>
+                <input type="password" name="password" placeholder="Contraseña" required>
+                <button class="btn-action" type="submit">Crear Cuenta</button>
+            </form>
             
-            <div style="margin: 20px 0; text-align:center; color: #666; font-size:12px;">O TAMBIÉN</div>
+            <div style="margin: 20px 0; text-align: center; color: #666; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">O continúa con</div>
             
-            <button type="button" onclick="window.location.href='<?php echo getGoogleLoginUrl(); ?>'" style="width:100%; padding:12px; border-radius:12px; border:1px solid #444; background:white; color:#000; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer;">
+            <a href="<?php echo getGoogleLoginUrl(); ?>" class="btn-action" style="background: white; color: black; text-decoration: none;">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20">
-                Entrar con Google
-            </button>
-        </form>
+                Google
+            </a>
+            
+            <p style="text-align: center; color: #666; font-size: 13px; margin-top: 25px;">
+                ¿Ya tienes cuenta? <a href="index.php?login=1" style="color: var(--accent-color); font-weight: 700; text-decoration: none;">Iniciar sesión</a>
+            </p>
+        </div>
     </div>
 </body>
 </html>

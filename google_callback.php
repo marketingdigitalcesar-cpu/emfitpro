@@ -83,22 +83,14 @@ if (isset($_GET['code'])) {
             $_SESSION['user_name'] = $name;
             $_SESSION['user_plan'] = 'pro';
 
-            // ENVIAR EMAIL DE BIENVENIDA VÍA n8n (URL de Producción)
-            $webhook_url = 'https://agencia-ia-n8n.tjo0g6.easypanel.host/webhook/emfitpro-welcome';
-            $payload = [
+            // ENVIAR EMAIL DE BIENVENIDA VÍA n8n
+            triggerWelcomeToN8N([
                 'event' => 'new_registration',
                 'name' => $name,
                 'email' => $email,
-                'source' => 'google'
-            ];
-            
-            $ch = curl_init($webhook_url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-            curl_exec($ch); // Ejecución silenciosa
-            curl_close($ch);
+                'source' => 'google',
+                'userId' => $new_user_id
+            ]);
 
             header("Location: complete_profile.php");
             exit();

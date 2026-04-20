@@ -36,75 +36,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>emfitpro | Completa tu Perfil</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body { background: #000; font-family: 'Outfit', sans-serif; color: white; margin: 0; overflow-y: auto; }
-        .setup-bg {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=1500');
-            background-size: cover; background-position: center; z-index: -1;
-        }
-        .container {
-            display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 40px 20px;
-        }
-        .setup-card {
-            background: rgba(26, 26, 26, 0.95); padding: 40px; border-radius: 24px;
-            max-width: 450px; width: 100%; border: 1px solid rgba(255,255,255,0.05);
-            backdrop-filter: blur(10px);
-        }
-        h1 { font-size: 32px; margin-bottom: 10px; color: var(--accent-color); }
-        p { color: #aaa; margin-bottom: 30px; font-size: 15px; }
-        
-        label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 700; color: #888; }
-        input, select {
-            width: 100%; padding: 16px; margin-bottom: 20px; background: #000;
-            border: 1px solid #333; border-radius: 12px; color: white; font-size: 16px; box-sizing: border-box;
-        }
-        input:focus, select:focus { border-color: var(--accent-color); outline: none; }
-        
-        .btn-finish {
-            width: 100%; padding: 18px; background: var(--accent-color); color: white;
-            border: none; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer;
-            transition: 0.3s;
-        }
-        .btn-finish:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(232, 118, 26, 0.3); }
-        
-        .promo-pill {
-            display: inline-block; padding: 5px 12px; background: rgba(232, 118, 26, 0.1);
-            color: var(--accent-color); border-radius: 100px; font-size: 12px; font-weight: 700;
-            margin-bottom: 15px;
-        }
-    </style>
 </head>
 <body>
-    <div class="setup-bg"></div>
-    <div class="container">
-        <div class="setup-card">
-            <span class="promo-pill">PASO FINAL</span>
-            <h1>Casi listo, <?php echo explode(' ', $_SESSION['user_name'] ?? 'Atleta')[0]; ?></h1>
-            <p>Personaliza tu experiencia para que nuestra IA diseñe el plan perfecto para ti.</p>
+    <div class="hero-bg-fixed" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=1500') center/cover;"></div>
+    <div class="overlay-gradient-fixed"></div>
+    <div class="app-container" style="display: flex; align-items: center; justify-content: center; padding-bottom: 20px;">
+        <div class="setup-card" style="margin-top: 20px;">
+            <span class="promo-badge">PASO FINAL</span>
+            <h1 style="color: var(--accent-color); font-size: 32px; margin-bottom: 10px;">Casi listo, <?php echo explode(' ', $_SESSION['user_name'] ?? 'Atleta')[0]; ?></h1>
+            <p style="color: #aaa; margin-bottom: 30px; font-size: 15px;">Personaliza tu experiencia para que nuestra IA diseñe el plan perfecto para ti.</p>
 
             <?php if($error): ?>
-                <div style="background: rgba(255,0,0,0.1); color: #ff4d4d; padding: 12px; border-radius: 10px; margin-bottom: 20px; font-size: 14px; border: 1px solid rgba(255,0,0,0.1);">
+                <div style="background: rgba(255,0,0,0.1); color: #ff4d4d; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 14px; border: 1px solid rgba(255,0,0,0.2);">
                     <?php echo $error; ?>
                 </div>
             <?php endif; ?>
 
             <form method="POST">
-                <label>EDAD</label>
+                <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase;">EDAD</label>
                 <input type="number" name="age" placeholder="Ej: 25" required min="10" max="100">
 
                 <div style="display: flex; gap: 15px;">
                     <div style="flex: 1;">
-                        <label>PESO (KG)</label>
+                        <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase;">PESO (KG)</label>
                         <input type="number" step="0.1" name="weight" placeholder="Ej: 75.5" required>
                     </div>
                     <div style="flex: 1;">
-                        <label>ALTURA (CM)</label>
+                        <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase;">ALTURA (CM)</label>
                         <input type="number" name="height" placeholder="Ej: 175" required>
                     </div>
                 </div>
 
-                <label>TU OBJETIVO PRINCIPAL</label>
+                <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase;">TU OBJETIVO PRINCIPAL</label>
                 <select name="goal" required>
                     <option value="ganar_musculo">Ganar Masa Muscular</option>
                     <option value="perder_grasa">Perder Grasa</option>
@@ -112,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <option value="salud">Salud General</option>
                 </select>
 
-                <button type="submit" class="btn-finish">Comenzar mi transformación</button>
+                <button type="submit" class="btn-upgrade" style="width: 100%; margin-top: 10px;">Comenzar mi transformación</button>
             </form>
         </div>
     </div>

@@ -17,6 +17,7 @@ if ($conn->connect_error) {
 define('OPENAI_API_KEY', 'tu_key_aqui');
 define('STRIPE_SECRET_KEY', 'sk_test_..._aqui');
 define('N8N_WEBHOOK_URL', 'https://n8n.tu-instancia.com/webhook/rutina-personalizada');
+define('WELCOME_WEBHOOK_URL', 'https://agencia-ia-n8n.tjo0g6.easypanel.host/webhook-test/emfitpro-welcome');
 
 // Función para verificar suscripción
 if (!function_exists('checkUserPlan')) {
@@ -45,6 +46,21 @@ if (!function_exists('triggerN8NWorkout')) {
         ];
         $context  = stream_context_create($options);
         return @file_get_contents(N8N_WEBHOOK_URL, false, $context);
+    }
+}
+
+// Función para flujo de bienvenida
+if (!function_exists('triggerWelcomeToN8N')) {
+    function triggerWelcomeToN8N($data) {
+        $options = [
+            'http' => [
+                'header'  => "Content-type: application/json\r\n",
+                'method'  => 'POST',
+                'content' => json_encode($data),
+            ],
+        ];
+        $context  = stream_context_create($options);
+        return @file_get_contents(WELCOME_WEBHOOK_URL, false, $context);
     }
 }
 ?>
