@@ -1,10 +1,12 @@
 <?php
 include 'config.php';
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-// Habilitar errores para debugging (solo desarrollo)
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Desactivar visualización de errores inline para que no rompan el JSON
+error_reporting(0);
+ini_set('display_errors', 0);
 
 header('Content-Type: application/json');
 
