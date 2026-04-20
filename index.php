@@ -486,7 +486,27 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                         </div>
                     `;
                 } else {
-                    html = `<div class="msg-ia" style="font-size: 13px; padding: 15px; line-height: 1.5;">${formattedText}</div>`;
+                    // INTELIGENCIA EXTRA: Intentar detectar listas numeradas si no hay JSON
+                    const listMatches = textToDisplay.match(/^\d+\.\s+.*$/gm);
+                    if (listMatches && listMatches.length >= 2) {
+                        const guestRoutine = listMatches.map(item => {
+                            const clean = item.replace(/^\d+\.\s+/, '').replace(/\*\*+/g, '').trim();
+                            const parts = clean.split('\n')[0].split('(')[0];
+                            return { name: parts.trim(), sets: "Ver detalle arriba" };
+                        });
+                        
+                        html = `
+                            <div class="msg-ia" style="font-size: 13px; padding: 15px; border-radius: 18px; line-height: 1.5;">
+                                ${formattedText}
+                                <div style="margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 15px; border: 1px dashed var(--accent-color); text-align: center;">
+                                    <p style="margin:0 0 10px 0; font-size: 12px; color: var(--accent-color);">✨ He detectado una rutina en la lista anterior</p>
+                                    <button class="btn-upgrade" style="height: 40px; font-size: 13px;" onclick="loadRoutine(\`${JSON.stringify(guestRoutine).replace(/"/g, '&quot;')}\`)">🏃‍♂️ INICIAR ESTA RUTINA</button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        html = `<div class="msg-ia" style="font-size: 13px; padding: 15px; line-height: 1.5;">${formattedText}</div>`;
+                    }
                 }
 
                 resultsDiv.innerHTML = html;
