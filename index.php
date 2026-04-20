@@ -290,29 +290,43 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             const feed = document.getElementById('social-feed');
             try {
                 const response = await fetch('social_api.php');
-                const posts = await response.json();
+                const text = await response.text(); // Leer como texto primero
                 
-                if (posts.error) {
-                    feed.innerHTML = `<div class="card" style="color:#ff6b6b; border: 1px solid #ff4d4d; font-size:12px;">⚠️ Error del servidor: ${posts.error}</div>`;
-                    return;
-                }
+                try {
+                    const posts = JSON.parse(text); // Intentar parsear
+                    
+                    if (posts.error) {
+                        feed.innerHTML = `<div class="card" style="color:#ff6b6b; border: 1px solid #ff4d4d; font-size:12px;">⚠️ Error: ${posts.error}</div>`;
+                        return;
+                    }
 
-                if (!Array.isArray(posts) || posts.length === 0) {
-                    feed.innerHTML = '<div class="card" style="text-align:center; color:#888;">Nadie ha publicado hoy. ¡Sé el primero!</div>';
-                    return;
-                }
+                    if (!Array.isArray(posts) || posts.length === 0) {
+                        feed.innerHTML = '<div class="card" style="text-align:center; color:#888;">Nadie ha publicado hoy. ¡Sé el primero!</div>';
+                        return;
+                    }
 
-                feed.innerHTML = posts.map(post => `
-                    <div class="card" style="margin-bottom:15px; border-left: 3px solid var(--accent-color); padding: 15px;">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <strong style="color:var(--accent-color); font-size: 14px;">${post.user_name}</strong>
-                            <small style="color:#555; font-size:10px;">${new Date(post.created_at).toLocaleTimeString()}</small>
+                    feed.innerHTML = posts.map(post => `
+                        <div class="card" style="margin-bottom:15px; border-left: 3px solid var(--accent-color); padding: 15px;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <strong style="color:var(--accent-color); font-size: 14px;">${post.user_name}</strong>
+                                <small style="color:#555; font-size:10px;">${new Date(post.created_at).toLocaleTimeString()}</small>
+                            </div>
+                            <p style="margin:8px 0 0; font-size:13px; line-height:1.4;">${post.content}</p>
                         </div>
-                        <p style="margin:8px 0 0; font-size:13px; line-height:1.4;">${post.content}</p>
-                    </div>
-                `).join('');
+                    `).join('');
+                } catch (jsonError) {
+                    // Si falla el JSON, mostrar el HTML que está causando el problema
+                    console.error("Servidor envió HTML en lugar de JSON:", text);
+                    feed.innerHTML = `
+                        <div class="card" style="color:#ff6b6b; font-size:11px;">
+                            ❌ Error de formato del servidor.<br>
+                            <div style="background:rgba(0,0,0,0.3); padding:5px; margin-top:5px; overflow-x:auto; white-space:pre-wrap;">
+                                ${text.substring(0, 200).replace(/</g, '&lt;')}
+                            </div>
+                        </div>`;
+                }
             } catch (e) {
-                feed.innerHTML = `<div class="card" style="color:#ff6b6b; font-size:12px;">❌ Fallo crítico al conectar: ${e.message}</div>`;
+                feed.innerHTML = `<div class="card" style="color:#ff6b6b; font-size:12px;">❌ Fallo de red: ${e.message}</div>`;
             }
         }
 
