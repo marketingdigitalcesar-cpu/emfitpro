@@ -184,9 +184,17 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
         <!-- COACH AI SCREEN (CON CHAT FUNCIONAL) -->
         <div id="screen-coach" class="screen hidden">
             <div class="card">
-                <h3>🤖 COACH INTELIGENTE</h3>
+                <h3>🤖 COACHES EXPERTOS</h3>
+                <p style="font-size: 11px; color: #888; margin-top: -10px; margin-bottom: 15px;">Selecciona el experto con el que quieres hablar:</p>
+                
+                <div style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; -webkit-overflow-scrolling: touch;">
+                    <div class="role-pill active" onclick="setRole('entrenador', this)">🏋️ Entrenador</div>
+                    <div class="role-pill" onclick="setRole('nutricionista', this)">🍎 Nutricionista</div>
+                    <div class="role-pill" onclick="setRole('sicologo', this)">🧠 Psicólogo</div>
+                </div>
+
                 <div id="chat-box" class="chat-area">
-                    <div class="msg-ia">¡Hola <?php echo htmlspecialchars(explode(' ', $displayName)[0]); ?>! Soy tu coach. ¿Qué te gustaría consultar hoy sobre tu nutrición?</div>
+                    <div class="msg-ia" id="ia-welcome-msg">¡Hola! Soy tu Entrenador personal. ¿En qué puedo ayudarte con tu rutina hoy?</div>
                 </div>
                 <div style="display:flex; gap:10px;">
                     <input type="text" id="chat-input" placeholder="Pregunta algo..." onkeypress="if(event.key==='Enter') sendMessage()">
@@ -331,20 +339,59 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             closeWorkout();
         }
 
-        function sendMessage() {
+        let currentRole = 'entrenador';
+
+        function setRole(role, el) {
+            currentRole = role;
+            document.querySelectorAll('.role-pill').forEach(p => p.classList.remove('active'));
+            el.classList.add('active');
+            
+            const welcomeMsg = {
+                'entrenador': '¡Hola! Soy tu Entrenador personal. ¿En qué puedo ayudarte con tu rutina hoy?',
+                'nutricionista': '¡Hola! Soy tu Nutricionista. ¿Quieres ajustar tu plan de comidas o tienes dudas sobre suplementos?',
+                'sicologo': '¡Hola! Soy tu Psicólogo Deportivo. Háblame de cómo te sientes hoy o de cualquier bloqueo mental.'
+            };
+            
+            document.getElementById('ia-welcome-msg').innerText = welcomeMsg[role];
+            document.getElementById('chat-box').innerHTML = `<div class="msg-ia" id="ia-welcome-msg">${welcomeMsg[role]}</div>`;
+        }
+
+        async function sendMessage() {
             const input = document.getElementById('chat-input');
             const text = input.value.trim();
             if(!text) return;
+            
             const box = document.getElementById('chat-box');
             box.innerHTML += `<div class="msg-user">${text}</div>`;
             input.value = '';
             box.scrollTop = box.scrollHeight;
             
-            // Simulación respuesta IA (Aquí conectarías con n8n)
-            setTimeout(() => {
-                box.innerHTML += `<div class="msg-ia">Procesando tu consulta sobre "${text}"... Estoy analizando tus datos de IMC (<?php echo $imc;?>) para responderte.</div>`;
-                box.scrollTop = box.scrollHeight;
-            }, 1000);
+            // Mostrar indicador de carga
+            const loadingId = 'loading-' + Date.now();
+            box.innerHTML += `<div class="msg-ia" id="${loadingId}">...</div>`;
+            box.scrollTop = box.scrollHeight;
+
+            try {
+                const response = await fetch('coach_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text, role: currentRole })
+                });
+                
+                const result = await response.json();
+                const loadingEl = document.getElementById(loadingId);
+                
+                if (result.output) {
+                    loadingEl.innerText = result.output;
+                } else if (result.choices && result.choices[0].message) {
+                    loadingEl.innerText = result.choices[0].message.content;
+                } else {
+                    loadingEl.innerText = "Lo siento, tuve un problema al procesar tu solicitud.";
+                }
+            } catch (e) {
+                document.getElementById(loadingId).innerText = "Error de conexión con el coach.";
+            }
+            box.scrollTop = box.scrollHeight;
         }
 
         window.addEventListener('scroll', () => {

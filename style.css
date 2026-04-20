@@ -75,6 +75,30 @@ body {
     padding: 40px;
 }
 
+.role-pill {
+    padding: 8px 16px;
+    background: var(--glass);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 20px;
+    font-size: 13px;
+    color: #ccc;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.role-pill:hover {
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-2px);
+}
+
+.role-pill.active {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+    box-shadow: 0 4px 15px rgba(232,118,26,0.3);
+}
+
 @media (max-width: 900px) {
     .split-screen {
         flex-direction: column;

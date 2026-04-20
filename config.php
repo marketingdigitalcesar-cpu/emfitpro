@@ -16,8 +16,8 @@ if ($conn->connect_error) {
 // Configuración de APIs
 define('OPENAI_API_KEY', 'tu_key_aqui');
 define('STRIPE_SECRET_KEY', 'sk_test_..._aqui');
-define('N8N_WEBHOOK_URL', 'https://n8n.tu-instancia.com/webhook/rutina-personalizada');
 define('WELCOME_WEBHOOK_URL', 'https://agencia-ia-n8n.tjo0g6.easypanel.host/webhook-test/emfitpro-welcome');
+define('COACH_CHAT_WEBHOOK_URL', 'https://agencia-ia-n8n.tjo0g6.easypanel.host/webhook/emfitpro-coach-chat');
 
 // Función para verificar suscripción
 if (!function_exists('checkUserPlan')) {
