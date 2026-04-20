@@ -395,10 +395,17 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                     resultText = responseText;
                 }
 
-                loadingEl.innerText = resultText || "El coach ha retornado una respuesta vacía. Revisa la configuración en n8n.";
+                const formattedResponse = (resultText || "El coach ha retornado una respuesta vacía. Revisa la configuración en n8n.")
+                    .replace(/[&<>"']/g, m => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'}[m]))
+                    .replace(/### (.*?)(<br>|\n|$)/g, '<h3 style="margin: 10px 0 5px 0; font-size: 1.1rem; color: #ff8c00; font-weight: 700;">$1</h3>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n- /g, '<br>• ')
+                    .replace(/\n/g, '<br>');
+
+                loadingEl.innerHTML = formattedResponse;
             } catch (e) {
                 console.error("Error Crítico AI:", e);
-                document.getElementById(loadingId).innerText = "No se pudo conectar con el servidor del coach.";
+                document.getElementById(loadingId).innerHTML = '<span style="color: #ff4d4d;">No se pudo conectar con el servidor del coach.</span>';
             }
             box.scrollTop = box.scrollHeight;
         }
