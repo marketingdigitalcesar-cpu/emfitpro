@@ -50,6 +50,16 @@ if (!function_exists('triggerN8NWorkout')) {
 }
 
 // Función para flujo de bienvenida
+// Verificación automática de tablas necesarias
+$conn->query("CREATE TABLE IF NOT EXISTS user_coach_data (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    category ENUM('entrenador', 'nutricionista', 'sicologo'),
+    content TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+)");
+
 if (!function_exists('triggerWelcomeToN8N')) {
     function triggerWelcomeToN8N($data) {
         $options = [
