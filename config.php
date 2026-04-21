@@ -1,11 +1,20 @@
 <?php
-// config.php - v2.0 - Actualizado: 2026-04-14
 session_start();
 
+// --- CARGADOR DE VARIABLES DE ENTORNO (.env) ---
+if (file_exists(__DIR__ . '/.env')) {
+    $lines = file(__DIR__ . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        list($name, $value) = explode('=', $line, 2);
+        putenv(trim($name) . "=" . trim($value));
+    }
+}
+
 $db_host = getenv('DB_HOST') ?: 'localhost';
-$db_user = getenv('DB_USER') ?: 'u_tu_usuario';
-$db_pass = getenv('DB_PASSWORD') ?: 'tu_contraseña';
-$db_name = getenv('DB_NAME') ?: 'fitness_app';
+$db_user = getenv('DB_USER') ?: 'root';
+$db_pass = getenv('DB_PASS') ?: '';
+$db_name = getenv('DB_NAME') ?: 'app_entrenador_fit';
 
 $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
 
@@ -13,19 +22,18 @@ if ($conn->connect_error) {
     die("Error de conexión: " . $conn->connect_error);
 }
 
-// Configuración de APIs
-// Configuración de APIs
-define('OPENAI_API_KEY', 'tu_key_aqui');
-define('N8N_WEBHOOK_URL', 'https://agencia-ia-n8n.tjo0g6.easypanel.host/webhook/emfitpro-welcome');
-define('WELCOME_WEBHOOK_URL', 'https://agencia-ia-n8n.tjo0g6.easypanel.host/webhook/emfitpro-welcome');
-define('COACH_CHAT_WEBHOOK_URL', 'https://agencia-ia-n8n.tjo0g6.easypanel.host/webhook/emfitpro-coach-chat');
+// Configuración de APIs (Cargadas desde el Entorno)
+define('OPENAI_API_KEY', getenv('OPENAI_API_KEY'));
+define('WELCOME_WEBHOOK_URL', getenv('WELCOME_WEBHOOK_URL'));
+define('COACH_CHAT_WEBHOOK_URL', getenv('COACH_CHAT_WEBHOOK_URL'));
+define('N8N_WEBHOOK_URL', getenv('WELCOME_WEBHOOK_URL')); // Reusamos el de bienvenida
 
 // WOMPI CONFIGURATION
-define('WOMPI_PUBLIC_KEY', 'pub_test_v6O8Fajo03lwnU08lFqiFciLmKSTediQ');
-define('WOMPI_PRIVATE_KEY', 'prv_test_DK7aSmWztJoddOZ5BMlJNUTOngFptO6E');
-define('WOMPI_EVENTS_SECRET', 'test_events_2aOImLqh6bApXhRR0WdrDCykBJMmjeCB');
-define('WOMPI_INTEGRITY_SECRET', 'test_integrity_a1L8Tae9D0oVMOZHozSPZHX5zhjIph3s');
-define('PRO_PLAN_PRICE_COP', 2000000); // 20,000 COP (en centavos)
+define('WOMPI_PUBLIC_KEY', getenv('WOMPI_PUBLIC_KEY'));
+define('WOMPI_PRIVATE_KEY', getenv('WOMPI_PRIVATE_KEY'));
+define('WOMPI_EVENTS_SECRET', getenv('WOMPI_EVENTS_SECRET'));
+define('WOMPI_INTEGRITY_SECRET', getenv('WOMPI_INTEGRITY_SECRET'));
+define('PRO_PLAN_PRICE_COP', getenv('PRO_PLAN_PRICE_COP') ?: 2000000);
 
 // Función para verificar suscripción
 if (!function_exists('checkUserPlan')) {
