@@ -65,7 +65,7 @@ $integrity_signature = hash('sha256', $concat);
         <p>Desbloquea tu máximo potencial con nuestra IA avanzada.</p>
 
         <div class="price">
-            $49.900 <span>/ mes</span>
+            $20.000 <span>/ mes</span>
         </div>
 
         <ul class="benefits">

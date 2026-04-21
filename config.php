@@ -25,7 +25,7 @@ define('WOMPI_PUBLIC_KEY', 'pub_test_v6O8Fajo03lwnU08lFqiFciLmKSTediQ');
 define('WOMPI_PRIVATE_KEY', 'prv_test_DK7aSmWztJoddOZ5BMlJNUTOngFptO6E');
 define('WOMPI_EVENTS_SECRET', 'test_events_2aOImLqh6bApXhRR0WdrDCykBJMmjeCB');
 define('WOMPI_INTEGRITY_SECRET', 'test_integrity_a1L8Tae9D0oVMOZHozSPZHX5zhjIph3s');
-define('PRO_PLAN_PRICE_COP', 4990000); // 49,900 COP (en centavos)
+define('PRO_PLAN_PRICE_COP', 2000000); // 20,000 COP (en centavos)
 
 // Función para verificar suscripción
 if (!function_exists('checkUserPlan')) {
