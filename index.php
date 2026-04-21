@@ -188,7 +188,7 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                         <p style="font-size: 11px; color: #aaa; margin-bottom: 15px;">Personaliza tu rutina con el Coach IA siendo <b>PRO</b>.</p>
                         <button class="btn-upgrade" style="margin-bottom: 10px;" onclick="loadFreeRoutine()">⚡ USAR RUTINA GRATIS DEL DÍA</button>
                         <br>
-                        <button class="btn-info" onclick="switchScreen('settings', null)" style="background: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); font-size: 11px; padding: 5px 12px;">✨ SUBIR A PLAN PRO</button>
+                        <button class="btn-info" onclick="window.location.href='pay.php'" style="background: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); font-size: 11px; padding: 5px 12px;">✨ SUBIR A PLAN PRO</button>
                     </div>
                 <?php endif; ?>
             </div>
