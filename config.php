@@ -14,11 +14,18 @@ if ($conn->connect_error) {
 }
 
 // Configuración de APIs
+// Configuración de APIs
 define('OPENAI_API_KEY', 'tu_key_aqui');
-define('STRIPE_SECRET_KEY', 'sk_test_..._aqui');
 define('N8N_WEBHOOK_URL', 'https://agencia-ia-n8n.tjo0g6.easypanel.host/webhook/emfitpro-welcome');
 define('WELCOME_WEBHOOK_URL', 'https://agencia-ia-n8n.tjo0g6.easypanel.host/webhook/emfitpro-welcome');
 define('COACH_CHAT_WEBHOOK_URL', 'https://agencia-ia-n8n.tjo0g6.easypanel.host/webhook/emfitpro-coach-chat');
+
+// WOMPI CONFIGURATION
+define('WOMPI_PUBLIC_KEY', 'pub_test_v6O8Fajo03lwnU08lFqiFciLmKSTediQ');
+define('WOMPI_PRIVATE_KEY', 'prv_test_DK7aSmWztJoddOZ5BMlJNUTOngFptO6E');
+define('WOMPI_EVENTS_SECRET', 'test_events_2aOImLqh6bApXhRR0WdrDCykBJMmjeCB');
+define('WOMPI_INTEGRITY_SECRET', 'test_integrity_a1L8Tae9D0oVMOZHozSPZHX5zhjIph3s');
+define('PRO_PLAN_PRICE_COP', 4990000); // 49,900 COP (en centavos)
 
 // Función para verificar suscripción
 if (!function_exists('checkUserPlan')) {
