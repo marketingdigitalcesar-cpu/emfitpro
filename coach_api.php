@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
 
     // URL de n8n (Asegúrate de configurar esta constante en config.php)
-    $webhook_url = defined('COACH_CHAT_WEBHOOK_URL') ? COACH_CHAT_WEBHOOK_URL : 'https://agencia-ia-n8n.tjo0g6.easypanel.host/webhook/emfitpro-coach-chat';
+    $webhook_url = COACH_CHAT_WEBHOOK_URL;
 
     $ch = curl_init($webhook_url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

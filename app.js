@@ -79,7 +79,8 @@ function sendMessageToCoach() {
     chat.scrollTop = chat.scrollHeight;
 
     // Conexión real con n8n
-    fetch('https://agencia-ia-n8n.tjo0g6.easypanel.host/webhook/emfitpro-ai', {
+    // Enviar a la API interna por seguridad
+    fetch('coach_api.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
