@@ -83,7 +83,8 @@ if (isset($_GET['code'])) {
             $_SESSION['user_name'] = $name;
             $_SESSION['user_plan'] = 'pro';
 
-            // ENVIAR EMAIL DE BIENVENIDA VÍA n8n
+            // ENVIAR EMAIL DE BIENVENIDA VÍA n8n (Usa el flujo configurado en config.php)
+            $webhook_url = WELCOME_WEBHOOK_URL;
             triggerWelcomeToN8N([
                 'event' => 'new_registration',
                 'name' => $name,

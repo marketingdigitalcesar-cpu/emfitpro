@@ -16,6 +16,7 @@ if ($conn->connect_error) {
 // Configuración de APIs
 define('OPENAI_API_KEY', 'tu_key_aqui');
 define('STRIPE_SECRET_KEY', 'sk_test_..._aqui');
+define('N8N_WEBHOOK_URL', 'https://agencia-ia-n8n.tjo0g6.easypanel.host/webhook/emfitpro-welcome');
 define('WELCOME_WEBHOOK_URL', 'https://agencia-ia-n8n.tjo0g6.easypanel.host/webhook/emfitpro-welcome');
 define('COACH_CHAT_WEBHOOK_URL', 'https://agencia-ia-n8n.tjo0g6.easypanel.host/webhook/emfitpro-coach-chat');
 
@@ -34,18 +35,17 @@ if (!function_exists('checkUserPlan')) {
     }
 }
 
-// Función para enviar a n8n
+// Función para enviar a n8n (Entrenamientos/Rutinas)
 if (!function_exists('triggerN8NWorkout')) {
     function triggerN8NWorkout($data) {
-        $options = [
-            'http' => [
-                'header'  => "Content-type: application/json\r\n",
-                'method'  => 'POST',
-                'content' => json_encode($data),
-            ],
-        ];
-        $context  = stream_context_create($options);
-        return @file_get_contents(N8N_WEBHOOK_URL, false, $context);
+        $ch = curl_init(N8N_WEBHOOK_URL);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        $response = curl_exec($ch);
+        curl_close($ch);
+        return $response;
     }
 }
 
@@ -91,15 +91,14 @@ $conn->query("CREATE TABLE IF NOT EXISTS community_posts (
 
 if (!function_exists('triggerWelcomeToN8N')) {
     function triggerWelcomeToN8N($data) {
-        $options = [
-            'http' => [
-                'header'  => "Content-type: application/json\r\n",
-                'method'  => 'POST',
-                'content' => json_encode($data),
-            ],
-        ];
-        $context  = stream_context_create($options);
-        return @file_get_contents(WELCOME_WEBHOOK_URL, false, $context);
+        $ch = curl_init(WELCOME_WEBHOOK_URL);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        $response = curl_exec($ch);
+        curl_close($ch);
+        return $response;
     }
 }
 ?>
