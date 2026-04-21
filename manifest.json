@@ -1,17 +1,32 @@
 {
-  "name": "emfitpro",
-  "short_name": "emfitpro",
-  "start_url": "index.html",
+  "name": "Emfitpro | IA Fitness Coach",
+  "short_name": "Emfitpro",
+  "description": "Tu entrenador personal con inteligencia artificial",
+  "start_url": "/index.php",
   "display": "standalone",
-  "background_color": "#0f0f0f",
-  "theme_color": "#E8761A",
-  "orientation": "portrait-primary",
+  "background_color": "#000000",
+  "theme_color": "#e8761a",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3048/3048398.png",
-      "type": "image/png",
+      "src": "assets/icon-512.png",
       "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "assets/hero-home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Emfitpro Dashboard"
     }
   ]
 }

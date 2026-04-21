@@ -67,6 +67,15 @@ if (!isset($_SESSION['user_id'])):
     <title>emfitpro | Transforma tu vida hoy</title>
     <link rel="stylesheet" href="style.css?v=1.0.1">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- PWA iOS Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Emfitpro">
+    <link rel="apple-touch-icon" href="assets/icon-512.png">
+    
+    <!-- Splash Screen iOS -->
+    <link rel="apple-touch-startup-image" href="assets/splash.png">
 </head>
 <body>
     <div class="split-screen">
@@ -148,6 +157,15 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=1.0.1">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- PWA iOS Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Emfitpro">
+    <link rel="apple-touch-icon" href="assets/icon-512.png">
+    
+    <!-- Splash Screen iOS -->
+    <link rel="apple-touch-startup-image" href="assets/splash.png">
 </head>
 <body>
     <div class="hero-bg-fixed" style="background: url('assets/hero-home.png') center/cover;"></div>
