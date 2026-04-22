@@ -140,6 +140,9 @@ $stmt->bind_param("i", $userId);
 $stmt->execute();
 $userData = $stmt->get_result()->fetch_assoc();
 
+// SEGURO DE TABLAS (Para asegurar que el servidor las tenga listas)
+$conn->query("CREATE TABLE IF NOT EXISTS workouts_completed (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, exercises_json JSON, muscle_groups JSON, duration INT, completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+
 if (!$userData || empty($userData['name']) || $userData['weight'] === null) { header("Location: complete_profile.php"); exit(); }
 
 $displayName = $userData['name'];
@@ -651,14 +654,19 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
         }
 
         async function logWorkoutSession() {
-            const duration = Math.floor(seconds / 60);
+            console.log("Iniciando guardado de sesión...");
+            const duration = Math.floor(seconds / 60) || 0;
             const doneExercises = exercises.filter(e => e.done);
             
-            // Inferir músculos (mapeo simple para este ejemplo)
+            if (doneExercises.length === 0) {
+                console.warn("No hay ejercicios marcados como hechos.");
+                return;
+            }
+
             const muscles = new Set();
             doneExercises.forEach(ex => {
                 const name = ex.name.toLowerCase();
-                if (name.includes('pecho') || name.includes('press')) muscles.add('pecho');
+                if (name.includes('pecho') || name.includes('press') || name.includes('flexiones')) muscles.add('pecho');
                 if (name.includes('sentadilla') || name.includes('zancada') || name.includes('pierna')) muscles.add('piernas');
                 if (name.includes('brazo') || name.includes('curl') || name.includes('biceps') || name.includes('triceps')) muscles.add('brazos');
                 if (name.includes('abdomen') || name.includes('plancha') || name.includes('crunch')) muscles.add('abdomen');
@@ -666,7 +674,7 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             });
 
             try {
-                await fetch('progress_api.php', {
+                const response = await fetch('progress_api.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -676,6 +684,8 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                         duration: duration
                     })
                 });
+                const result = await response.json();
+                console.log("Resultado guardado progreso:", result);
             } catch (e) {
                 console.error("Error guardando sesión:", e);
             }
