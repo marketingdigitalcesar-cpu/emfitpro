@@ -38,9 +38,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $diff = $post_count - $session_count;
             for ($i = 0; $i < $diff; $i++) {
                 $empty_json = json_encode([]);
-                $general_muscles = json_encode(['general']);
+                // Asignar músculos comunes para que el mapa se vea activo tras la recuperación
+                $recovered_muscles = json_encode(['pecho', 'piernas', 'brazos', 'abdomen']);
                 $stmt = $conn->prepare("INSERT INTO workouts_completed (user_id, exercises_json, muscle_groups, duration) VALUES (?, ?, ?, 30)");
-                $stmt->bind_param("iss", $user_id, $empty_json, $general_muscles);
+                $stmt->bind_param("iss", $user_id, $empty_json, $recovered_muscles);
                 $stmt->execute();
             }
             echo json_encode(['status' => 'success', 'synced' => $diff]);

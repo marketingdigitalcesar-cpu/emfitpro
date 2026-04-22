@@ -470,8 +470,8 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                 document.querySelectorAll('[id^="muscle-"]').forEach(el => el.setAttribute('fill', '#333'));
                 
                 // Color working muscles
-                if (data.muscle_counts) {
-                    for (const [muscle, count] of Object.entries(data.muscle_counts)) {
+                if (data.muscle_stats) {
+                    for (const [muscle, count] of Object.entries(data.muscle_stats)) {
                         const id = 'muscle-' + muscle;
                         const el = document.getElementById(id);
                         if (el) {
