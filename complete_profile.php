@@ -19,8 +19,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bind_param("idddssdds", $userId, $age, $weight, $height, $goal, $age, $weight, $height, $goal);
 
     if ($stmt->execute()) {
-        // Disparar n8n para generar la primera rutina
-        triggerN8NWorkout(['userId' => $userId, 'goal' => $goal, 'weight' => $weight, 'height' => $height]);
+        // Obtener nombre y correo para el mail de bienvenida
+        $userQuery = $conn->prepare("SELECT name, email FROM users WHERE id = ?");
+        $userQuery->bind_param("i", $userId);
+        $userQuery->execute();
+        $userData = $userQuery->get_result()->fetch_assoc();
+
+        // Disparar n8n para generar la primera rutina y enviar bienvenida
+        triggerN8NWorkout([
+            'userId' => $userId, 
+            'name'   => $userData['name'] ?? 'Atleta',
+            'email'  => $userData['email'] ?? '',
+            'goal'   => $goal, 
+            'weight' => $weight, 
+            'height' => $height
+        ]);
         header("Location: index.php");
         exit();
     } else {
