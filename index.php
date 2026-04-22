@@ -135,10 +135,23 @@ if (!isset($_SESSION['user_id'])):
 <?php 
 else: 
 $userId = $_SESSION['user_id'];
-$stmt = $conn->prepare("SELECT u.name, u.plan, p.weight, p.height, p.age, p.goal FROM users u LEFT JOIN user_profiles p ON u.id = p.user_id WHERE u.id = ?");
+// Fetch user data including plan expiration
+$stmt = $conn->prepare("SELECT u.name, u.plan, u.plan_expires, p.weight, p.height, p.age, p.goal FROM users u LEFT JOIN user_profiles p ON u.id = p.user_id WHERE u.id = ?");
 $stmt->bind_param("i", $userId);
 $stmt->execute();
 $userData = $stmt->get_result()->fetch_assoc();
+
+// VALIDACIÓN REAL DEL PLAN (Verificar si expiró)
+$currentPlan = 'gratis';
+if ($userData['plan'] === 'pro') {
+    if (strtotime($userData['plan_expires']) > time()) {
+        $currentPlan = 'pro';
+    } else {
+        // Opcional: Actualizar base de datos para que quede como gratis permanentemente hasta el pago
+        $conn->query("UPDATE users SET plan = 'gratis' WHERE id = $userId");
+    }
+}
+$userData['plan'] = $currentPlan; // Sobrescribir con el plan validado
 
 // SEGURO DE TABLAS (Para asegurar que el servidor las tenga listas)
 $conn->query("CREATE TABLE IF NOT EXISTS workouts_completed (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, exercises_json JSON, muscle_groups JSON, duration INT, completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
@@ -181,11 +194,16 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                     <div id="profile-drop" class="dropdown-content"><a href="javascript:void(0)" onclick="switchScreen('settings', this)">⚙️ Perfil</a><a href="logout.php">🚪 Salir</a></div>
                 </div>
                 <div><h2 style="font-size:16px; margin:0;">Hola, <?php echo htmlspecialchars(explode(' ', $displayName)[0]); ?>!</h2>
-                <span class="plan-tag" style="background: <?php echo ($userData['plan'] === 'pro') ? 'var(--accent-color)' : '#666'; ?>;">
-                    <?php echo strtoupper($userData['plan'] ?? 'GRATIS'); ?>
+                <span class="plan-tag" style="background: <?php echo ($currentPlan === 'pro') ? 'var(--accent-color)' : '#666'; ?>;">
+                    <?php echo strtoupper($currentPlan); ?>
                 </span></div>
             </div>
-            <div style="font-size:22px;">🔔</div>
+            <div style="font-size:22px; position: relative;">
+                🔔
+                <?php if ($currentPlan === 'gratis'): ?>
+                    <span style="position: absolute; top: -5px; right: -5px; background: red; width: 8px; height: 8px; border-radius: 50%;"></span>
+                <?php endif; ?>
+            </div>
         </header>
 
         <div id="screen-home" class="screen">
@@ -197,7 +215,7 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             <div class="card" style="background: linear-gradient(135deg, #2c1a0a 0%, #1a1a1a 100%);"><h3>🗣️ CONSEJO IA</h3><p style="font-size: 14px;">"Optimicemos tus <?php echo $displayWeight; ?>kg hoy."</p></div>
             <div class="card" id="card-routine-chat" style="padding-bottom: 15px;">
                 <h4 style="margin:0 0 5px 0; color: var(--accent-color); font-size: 14px; letter-spacing: 1px;">💪 GENERADOR DE RUTINA</h4>
-                <?php if (($userData['plan'] ?? 'gratis') === 'pro'): ?>
+                <?php if ($currentPlan === 'pro'): ?>
                     <p style="font-size: 11px; color: #888; margin-bottom: 15px;">Dime cuánto tiempo tienes y con qué equipo cuentas hoy.</p>
                     <div id="home-chat-results" style="margin-bottom: 15px; display: none;"></div>
                     <div style="display:flex; gap:10px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 15px; border: 1px solid var(--glass);">
