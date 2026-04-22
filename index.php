@@ -470,26 +470,21 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                 document.querySelectorAll('[id^="muscle-"]').forEach(el => el.setAttribute('fill', '#333'));
                 
                 // Color working muscles
-                if (data.muscle_stats) {
-                    for (const [muscle, count] of Object.entries(data.muscle_stats)) {
+                if (data.muscle_counts) {
+                    for (const [muscle, count] of Object.entries(data.muscle_counts)) {
                         const id = 'muscle-' + muscle;
-                        const el = document.getElementById(id);
-                        if (el) {
-                            el.setAttribute('fill', 'var(--accent-color)');
-                            el.style.opacity = Math.min(0.3 + (count * 0.2), 1);
-                        }
+                        const elements = [
+                            document.getElementById(id),
+                            document.getElementById(id + '-l'),
+                            document.getElementById(id + '-r')
+                        ];
                         
-                        // Handle left/right splits if any
-                        const left = document.getElementById(id + '-l');
-                        const right = document.getElementById(id + '-r');
-                        if (left) {
-                            left.setAttribute('fill', 'var(--accent-color)');
-                            left.style.opacity = Math.min(0.3 + (count * 0.2), 1);
-                        }
-                        if (right) {
-                            right.setAttribute('fill', 'var(--accent-color)');
-                            right.style.opacity = Math.min(0.3 + (count * 0.2), 1);
-                        }
+                        elements.forEach(el => {
+                            if (el) {
+                                el.setAttribute('fill', '#ff8c00');
+                                el.style.opacity = Math.min(0.4 + (count * 0.15), 1);
+                            }
+                        });
                     }
                 }
             } catch (e) {

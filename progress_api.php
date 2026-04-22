@@ -33,12 +33,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $session_count = $stmt->get_result()->fetch_assoc()['session_count'];
         
-        // Si hay más posts que sesiones, crear las faltantes como "General"
+        // Reparar sesiones antiguas que no tengan músculos asignados
+        $full_body = json_encode(['pecho', 'piernas', 'brazos', 'abdomen']);
+        $stmt = $conn->prepare("UPDATE workouts_completed SET muscle_groups = ? WHERE user_id = ? AND (muscle_groups = '[]' OR muscle_groups IS NULL OR muscle_groups LIKE '%general%')");
+        $stmt->bind_param("si", $full_body, $user_id);
+        $stmt->execute();
+
         if ($post_count > $session_count) {
             $diff = $post_count - $session_count;
             for ($i = 0; $i < $diff; $i++) {
                 $empty_json = json_encode([]);
-                // Asignar músculos comunes para que el mapa se vea activo tras la recuperación
                 $recovered_muscles = json_encode(['pecho', 'piernas', 'brazos', 'abdomen']);
                 $stmt = $conn->prepare("INSERT INTO workouts_completed (user_id, exercises_json, muscle_groups, duration) VALUES (?, ?, ?, 30)");
                 $stmt->bind_param("iss", $user_id, $empty_json, $recovered_muscles);
@@ -46,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             echo json_encode(['status' => 'success', 'synced' => $diff]);
         } else {
-            echo json_encode(['status' => 'already_synced']);
+            echo json_encode(['status' => 'repaired']);
         }
     }
     elseif ($action === 'log_workout') {
