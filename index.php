@@ -797,8 +797,11 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                         const guestRoutine = matches.map((m, i) => {
                             // Limpiar el nombre de asteriscos, paréntesis y otros adornos
                             const cleanName = m[2].replace(/\*\*+/g, '').split('(')[0].replace(/:$/, '').trim();
-                            return { id: i, name: cleanName, sets: "1 serie" };
+                            return { id: i, name: cleanName, sets: "1 serie", done: false };
                         });
+                        
+                        // CARGAR EN EL SISTEMA GLOBAL PARA QUE SE GUARDE EL PROGRESO
+                        exercises = guestRoutine; 
                         
                         let checklistHtml = '<div id="mini-tracker-container" style="margin-top:15px; background:rgba(0,0,0,0.3); padding:15px; border-radius:15px; border:2px solid var(--accent-color);">';
                         checklistHtml += '<p style="color:var(--accent-color); font-weight:bold; font-size:12px; margin-bottom:12px; display:flex; justify-content:space-between;"><span>📉 TU RUTINA DETECTADA:</span> <span id="progress-count">0/'+guestRoutine.length+'</span></p>';
@@ -836,6 +839,9 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             const checked = document.querySelectorAll('.home-check:checked');
             const total = checks.length;
             
+            // Actualizar estado 'done' en el array global
+            checks.forEach((c, i) => { if(exercises[i]) exercises[i].done = c.checked; });
+
             document.getElementById('progress-count').innerText = `${checked.length}/${total}`;
             
             const area = document.getElementById('finish-workout-area');
@@ -864,16 +870,19 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             const content = `🔥 ¡He completado una rutina de ${total} ejercicios con mi Coach IA de Emfitpro!`;
 
             try {
+                // Guardar primero en progreso
+                await logWorkoutSession();
+
                 await fetch('social_api.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'post_workout', content: content })
                 });
                 
-                alert('¡FELICIDADES! 🎉 Tu victoria ha sido publicada en la comunidad.');
+                alert('¡FELICIDADES! 🎉 Tu victoria ha sido guardada y publicada.');
                 switchScreen('social', document.querySelectorAll('.nav-item')[1]);
             } catch (e) {
-                alert('Logro completado, pero no se pudo publicar en el muro.');
+                alert('Logro completado, pero hubo un detalle al sincronizar.');
             }
         }
 
