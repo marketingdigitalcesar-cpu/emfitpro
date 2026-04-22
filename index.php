@@ -454,7 +454,17 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                 const response = await fetch('progress_api.php');
                 const data = await response.json();
                 
-                document.getElementById('total-workouts').innerText = data.total_workouts || 0;
+                // Si el progreso está en 0 pero hay posts en social, intentar sincronizar (una sola vez)
+                if ((!data.total_workouts || data.total_workouts == 0)) {
+                   console.log("Intentando sincronizar progreso desde social...");
+                   await fetch('progress_api.php', { method: 'POST', body: JSON.stringify({ action: 'sync_from_social' }), headers: {'Content-Type':'application/json'} });
+                   // Recargar datos tras la sincronización
+                   const retry = await fetch('progress_api.php');
+                   const newData = await retry.json();
+                   document.getElementById('total-workouts').innerText = newData.total_workouts || 0;
+                } else {
+                   document.getElementById('total-workouts').innerText = data.total_workouts || 0;
+                }
                 
                 // Reset colors
                 document.querySelectorAll('[id^="muscle-"]').forEach(el => el.setAttribute('fill', '#333'));
@@ -875,8 +885,19 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
         }
 
         async function finishAndPublish() {
-            const checks = document.querySelectorAll('.home-check:checked');
-            const total = document.querySelectorAll('.home-check').length;
+            const allChecks = document.querySelectorAll('.home-check');
+            let checks = document.querySelectorAll('.home-check:checked');
+            
+            // MEJORA: Si el usuario no marcó ninguno, marcarlos todos por defecto para que cuente
+            if (checks.length === 0) {
+                allChecks.forEach((c, i) => { 
+                    c.checked = true; 
+                    if(exercises[i]) exercises[i].done = true; 
+                });
+                checks = allChecks;
+            }
+
+            const total = allChecks.length;
             const content = `🔥 ¡He completado una rutina de ${total} ejercicios con mi Coach IA de Emfitpro!`;
 
             try {
