@@ -104,6 +104,26 @@ $conn->query("CREATE TABLE IF NOT EXISTS community_posts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )");
 
+// Crear tabla de Amistades
+$conn->query("CREATE TABLE IF NOT EXISTS friendships (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    friend_id INT NOT NULL,
+    status ENUM('pending', 'accepted') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY (user_id, friend_id)
+)");
+
+// Crear tabla de Entrenamientos Completados (Log para progreso)
+$conn->query("CREATE TABLE IF NOT EXISTS workouts_completed (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    exercises_json JSON,
+    muscle_groups JSON, -- Lista de grupos musculares trabajados
+    duration INT,
+    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)");
+
 if (!function_exists('triggerWelcomeToN8N')) {
     function triggerWelcomeToN8N($data) {
         $ch = curl_init(WELCOME_WEBHOOK_URL);

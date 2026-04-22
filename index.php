@@ -213,9 +213,22 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
         </div>
 
         <div id="screen-social" class="screen hidden">
-            <h3 style="margin: 0 0 15px 15px;">Comunidad Emfitpro</h3>
-            <div id="social-feed" style="padding: 0 15px;">
-                <div style="text-align:center; padding:20px; color:#666;">Cargando novedades...</div>
+            <div style="padding: 15px;">
+                <h3 style="margin: 0 0 15px 0;">Comunidad Emfitpro</h3>
+                
+                <div style="display:flex; gap:10px; margin-bottom: 20px;">
+                    <input type="text" id="user-search-input" placeholder="Buscar usuarios..." style="margin-bottom:0; font-size: 14px;">
+                    <button class="btn-upgrade" style="width:auto; padding: 0 15px;" onclick="searchUsers()">Buscar</button>
+                </div>
+                
+                <div id="user-search-results" class="hidden" style="margin-bottom: 25px; background: rgba(255,255,255,0.02); border-radius: 15px; padding: 10px; border: 1px solid var(--glass);">
+                    <h4 style="font-size: 12px; color: var(--accent-color); margin: 0 0 10px 5px;">RESULTADOS</h4>
+                    <div id="search-list"></div>
+                </div>
+
+                <div id="social-feed">
+                    <div style="text-align:center; padding:20px; color:#666;">Cargando novedades...</div>
+                </div>
             </div>
         </div>
 
@@ -241,7 +254,47 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             </div>
         </div>
 
-        <div id="screen-progress" class="screen hidden"><div class="card"><h3>📊 ESTADÍSTICAS</h3><p>Talla: <?php echo $displayHeight; ?>cm</p></div></div>
+        <div id="screen-progress" class="screen hidden">
+            <div class="card">
+                <h3>📊 TU PROGRESO</h3>
+                <div class="stats-grid" style="margin-bottom: 20px;">
+                    <div class="stat-item"><div class="stat-value" id="total-workouts">0</div><div class="stat-label">SESIONES</div></div>
+                    <div class="stat-item"><div class="stat-value"><?php echo $displayHeight; ?></div><div class="stat-label">ALTURA (CM)</div></div>
+                    <div class="stat-item"><div class="stat-value"><?php echo $imc; ?></div><div class="stat-label">IMC</div></div>
+                </div>
+
+                <div style="text-align: center; margin: 20px 0;">
+                    <h4 style="color: var(--accent-color); margin-bottom: 15px;">MAPA DE MÚSCULOS TRABAJADOS</h4>
+                    <div style="display: flex; justify-content: center; gap: 40px; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 20px;">
+                        <!-- SVG Body Front -->
+                        <svg width="100" height="200" viewBox="0 0 100 200" id="body-front">
+                            <!-- Chest -->
+                            <path d="M35 55 Q50 50 65 55 L65 75 Q50 80 35 75 Z" fill="#333" id="muscle-pecho" />
+                            <!-- Shoulders -->
+                            <circle cx="30" cy="55" r="8" fill="#333" id="muscle-hombros-l" />
+                            <circle cx="70" cy="55" r="8" fill="#333" id="muscle-hombros-r" />
+                            <!-- Arms -->
+                            <rect x="22" y="65" width="10" height="30" fill="#333" id="muscle-brazos-l" />
+                            <rect x="68" y="65" width="10" height="30" fill="#333" id="muscle-brazos-r" />
+                            <!-- Abs -->
+                            <rect x="40" y="80" width="20" height="35" fill="#333" id="muscle-abdomen" />
+                            <!-- Legs -->
+                            <rect x="33" y="125" width="15" height="50" fill="#333" id="muscle-piernas-l" />
+                            <rect x="52" y="125" width="15" height="50" fill="#333" id="muscle-piernas-r" />
+                            <!-- Silhouette Head -->
+                            <circle cx="50" cy="30" r="15" fill="none" stroke="#444" stroke-width="2" />
+                            <!-- Silhouette Body -->
+                            <path d="M30 50 L70 50 L75 120 L60 120 L60 190 L40 190 L40 120 L25 120 Z" fill="none" stroke="#444" stroke-width="2" />
+                        </svg>
+                        
+                        <div style="display: flex; flex-direction: column; justify-content: center; gap: 10px; font-size: 10px; color: #888; text-align: left;">
+                            <div style="display: flex; align-items: center; gap: 5px;"><div style="width:10px; height:10px; background:var(--accent-color);"></div> Trabajado</div>
+                            <div style="display: flex; align-items: center; gap: 5px;"><div style="width:10px; height:10px; background:#333;"></div> Sin trabajar</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div id="screen-settings" class="screen hidden">
             <div class="card"><h3>⚙️ PERFIL</h3>
@@ -312,6 +365,123 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             if(el) el.classList.add('active');
             document.getElementById('profile-drop').classList.remove('show');
             if (id === 'social') loadSocialFeed();
+            if (id === 'progress') loadProgress();
+        }
+
+        async function searchUsers() {
+            const input = document.getElementById('user-search-input');
+            const query = input.value.trim();
+            if (query.length < 2) return;
+
+            const resultsDiv = document.getElementById('user-search-results');
+            const list = document.getElementById('search-list');
+            resultsDiv.classList.remove('hidden');
+            list.innerHTML = '<div style="color:#666; font-size:12px; padding:10px;">Buscando...</div>';
+
+            try {
+                const response = await fetch('social_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'search_users', query: query })
+                });
+                const users = await response.json();
+                
+                if (users.length === 0) {
+                    list.innerHTML = '<div style="color:#666; font-size:12px; padding:10px;">No se encontraron usuarios.</div>';
+                    return;
+                }
+
+                list.innerHTML = users.map(user => {
+                    let actionHtml = '';
+                    if (user.friend_status === 'none') {
+                        actionHtml = `<button class="btn-upgrade" style="width:auto; height:30px; font-size:11px; padding:0 10px;" onclick="addFriend(${user.id}, this)">Añadir</button>`;
+                    } else if (user.friend_status === 'pending') {
+                        // Aquí simplificamos: si está pendiente, mostramos un botón de aceptar si la lógica del API lo permite
+                        // Para este MVP, si está pendiente, el usuario puede intentar "Aceptar" si fue el otro quien la envió.
+                        // Optamos por un botón que intente aceptar.
+                        actionHtml = `<button class="btn-upgrade" style="width:auto; height:30px; font-size:11px; padding:0 10px; background:#4CAF50;" onclick="acceptFriend(${user.id}, this)">Aceptar / Pendiente</button>`;
+                    } else {
+                        actionHtml = `<span style="font-size:11px; color:var(--accent-color);">Amigos</span>`;
+                    }
+
+                    return `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                            <span style="font-size:14px;">${user.name}</span>
+                            ${actionHtml}
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                list.innerHTML = '<div style="color:#ff6b6b; font-size:11px; padding:10px;">Error al buscar.</div>';
+            }
+        }
+
+        async function acceptFriend(friendId, btn) {
+            btn.disabled = true;
+            try {
+                const res = await fetch('social_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'accept_friend', friend_id: friendId })
+                });
+                btn.parentElement.innerHTML = '<span style="font-size:11px; color:var(--accent-color);">Amigos</span>';
+            } catch (e) {
+                btn.disabled = false;
+            }
+        }
+
+        async function addFriend(friendId, btn) {
+            btn.disabled = true;
+            btn.innerText = '...';
+            try {
+                await fetch('social_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'add_friend', friend_id: friendId })
+                });
+                btn.parentElement.innerHTML = '<span style="font-size:11px; color:var(--accent-color);">Pendiente</span>';
+            } catch (e) {
+                btn.disabled = false;
+                btn.innerText = 'Error';
+            }
+        }
+
+        async function loadProgress() {
+            try {
+                const response = await fetch('progress_api.php');
+                const data = await response.json();
+                
+                document.getElementById('total-workouts').innerText = data.total_workouts || 0;
+                
+                // Reset colors
+                document.querySelectorAll('[id^="muscle-"]').forEach(el => el.setAttribute('fill', '#333'));
+                
+                // Color working muscles
+                if (data.muscle_counts) {
+                    for (const [muscle, count] of Object.entries(data.muscle_counts)) {
+                        const id = 'muscle-' + muscle;
+                        const el = document.getElementById(id);
+                        if (el) {
+                            el.setAttribute('fill', 'var(--accent-color)');
+                            el.style.opacity = Math.min(0.3 + (count * 0.2), 1);
+                        }
+                        
+                        // Handle left/right splits if any
+                        const left = document.getElementById(id + '-l');
+                        const right = document.getElementById(id + '-r');
+                        if (left) {
+                            left.setAttribute('fill', 'var(--accent-color)');
+                            left.style.opacity = Math.min(0.3 + (count * 0.2), 1);
+                        }
+                        if (right) {
+                            right.setAttribute('fill', 'var(--accent-color)');
+                            right.style.opacity = Math.min(0.3 + (count * 0.2), 1);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Error cargando progreso:", e);
+            }
         }
 
         async function loadSocialFeed() {
@@ -477,6 +647,38 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             document.getElementById('exercises-list').classList.add('hidden');
             document.getElementById('active-actions').classList.add('hidden');
             document.getElementById('workout-finished-state').classList.remove('hidden');
+            logWorkoutSession();
+        }
+
+        async function logWorkoutSession() {
+            const duration = Math.floor(seconds / 60);
+            const doneExercises = exercises.filter(e => e.done);
+            
+            // Inferir músculos (mapeo simple para este ejemplo)
+            const muscles = new Set();
+            doneExercises.forEach(ex => {
+                const name = ex.name.toLowerCase();
+                if (name.includes('pecho') || name.includes('press')) muscles.add('pecho');
+                if (name.includes('sentadilla') || name.includes('zancada') || name.includes('pierna')) muscles.add('piernas');
+                if (name.includes('brazo') || name.includes('curl') || name.includes('biceps') || name.includes('triceps')) muscles.add('brazos');
+                if (name.includes('abdomen') || name.includes('plancha') || name.includes('crunch')) muscles.add('abdomen');
+                if (name.includes('hombro') || name.includes('press militar')) muscles.add('hombros');
+            });
+
+            try {
+                await fetch('progress_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'log_workout', 
+                        exercises: doneExercises, 
+                        muscles: Array.from(muscles),
+                        duration: duration
+                    })
+                });
+            } catch (e) {
+                console.error("Error guardando sesión:", e);
+            }
         }
 
         function closeWorkout() {

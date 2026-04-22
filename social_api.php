@@ -31,10 +31,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             echo json_encode(['error' => $conn->error]);
         }
+    } elseif ($action === 'search_users') {
+        $query = $conn->real_escape_string($input['query']);
+        $sql = "SELECT id, name FROM users WHERE name LIKE '%$query%' AND id != $user_id LIMIT 10";
+        $result = $conn->query($sql);
+        $users = [];
+        while ($row = $result->fetch_assoc()) {
+            // Verificar estado de amistad
+            $friend_id = $row['id'];
+            $status_sql = "SELECT status FROM friendships WHERE (user_id = $user_id AND friend_id = $friend_id) OR (user_id = $friend_id AND friend_id = $user_id)";
+            $status_res = $conn->query($status_sql);
+            $row['friend_status'] = $status_res->num_rows > 0 ? $status_res->fetch_assoc()['status'] : 'none';
+            $users[] = $row;
+        }
+        echo json_encode($users);
+    } elseif ($action === 'add_friend') {
+        $friend_id = (int)$input['friend_id'];
+        $sql = "INSERT INTO friendships (user_id, friend_id, status) VALUES ($user_id, $friend_id, 'pending') ON DUPLICATE KEY UPDATE status='pending'";
+        if ($conn->query($sql)) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['error' => $conn->error]);
+        }
+    } elseif ($action === 'accept_friend') {
+        $friend_id = (int)$input['friend_id'];
+        $sql = "UPDATE friendships SET status = 'accepted' WHERE (user_id = $friend_id AND friend_id = $user_id)";
+        if ($conn->query($sql)) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['error' => $conn->error]);
+        }
     }
 } else {
-    // Listar posts
-    $result = $conn->query("SELECT * FROM community_posts ORDER BY created_at DESC LIMIT 20");
+    // Listar posts (propios y de otros)
+    $sql = "SELECT p.*, u.name as user_name 
+            FROM community_posts p 
+            JOIN users u ON p.user_id = u.id 
+            ORDER BY p.created_at DESC LIMIT 20";
+    $result = $conn->query($sql);
     if (!$result) {
         die(json_encode(['error' => $conn->error]));
     }
