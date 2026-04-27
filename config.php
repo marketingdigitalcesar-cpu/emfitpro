@@ -128,6 +128,15 @@ $conn->query("CREATE TABLE IF NOT EXISTS workouts_completed (
     completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )");
 
+// Crear tabla de Sugerencias (Local)
+$conn->query("CREATE TABLE IF NOT EXISTS user_suggestions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+)");
+
 if (!function_exists('triggerWelcomeToN8N')) {
     function triggerWelcomeToN8N($data) {
         $ch = curl_init(WELCOME_WEBHOOK_URL);

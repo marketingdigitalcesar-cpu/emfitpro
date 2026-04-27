@@ -418,14 +418,13 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             btn.innerText = "ENVIANDO...";
 
             try {
-                await fetch('<?php echo SUGGESTIONS_WEBHOOK_URL; ?>', {
+                await fetch('suggestions_api.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         suggestion: text, 
                         user: '<?php echo addslashes($displayName); ?>',
-                        email: '<?php echo addslashes($userData['email'] ?? ''); ?>',
-                        date: new Date().toLocaleString()
+                        email: '<?php echo addslashes($userData['email'] ?? ''); ?>'
                     })
                 });
                 
