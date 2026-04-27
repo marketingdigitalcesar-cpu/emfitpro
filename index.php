@@ -191,7 +191,11 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             <div style="display:flex; align-items:center; gap:12px;">
                 <div class="dropdown">
                     <div class="avatar-circle" onclick="toggleDropdown()"><?php $words = explode(' ', $displayName); echo strtoupper($words[0][0].($words[1][0]??'')); ?></div>
-                    <div id="profile-drop" class="dropdown-content"><a href="javascript:void(0)" onclick="switchScreen('settings', this)">⚙️ Perfil</a><a href="logout.php">🚪 Salir</a></div>
+                    <div id="profile-drop" class="dropdown-content">
+                        <a href="javascript:void(0)" onclick="switchScreen('settings', this)">⚙️ Perfil</a>
+                        <a href="javascript:void(0)" onclick="switchScreen('suggestions', this)">💡 Sugerencias</a>
+                        <a href="logout.php">🚪 Salir</a>
+                    </div>
                 </div>
                 <div><h2 style="font-size:16px; margin:0;">Hola, <?php echo htmlspecialchars(explode(' ', $displayName)[0]); ?>!</h2>
                 <span class="plan-tag" style="background: <?php echo ($currentPlan === 'pro') ? 'var(--accent-color)' : '#666'; ?>;">
@@ -338,7 +342,10 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                 <button type="submit" class="btn-upgrade" style="margin-top:20px;">Guardar cambios</button></form>
             </div>
 
-            <div class="card" style="margin-top: 15px; border: 1px dashed var(--accent-color); background: rgba(232,118,26,0.05);">
+        </div>
+        
+        <div id="screen-suggestions" class="screen hidden">
+            <div class="card" style="border: 1px dashed var(--accent-color); background: rgba(232,118,26,0.05);">
                 <h3>💡 SUGERENCIAS</h3>
                 <p style="font-size: 12px; color: #888; margin-bottom: 15px;">Dinos cómo podemos mejorar tu experiencia. Tu feedback llega directo a nuestro equipo.</p>
                 <textarea id="suggestion-text" placeholder="Escribe tu sugerencia aquí..." style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass); border-radius: 10px; color: white; padding: 12px; font-size: 14px; min-height: 80px; margin-bottom: 10px; font-family: inherit; resize: none;"></textarea>
