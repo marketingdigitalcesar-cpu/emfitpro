@@ -22,10 +22,14 @@ if ($conn->connect_error) {
     die("Error de conexión: " . $conn->connect_error);
 }
 
+// Limpieza automática de planes expirados (Global)
+$conn->query("UPDATE users SET plan = 'gratis' WHERE plan = 'pro' AND plan_expires < NOW()");
+
 // Configuración de APIs (Cargadas desde el Entorno)
 define('OPENAI_API_KEY', getenv('OPENAI_API_KEY'));
 define('WELCOME_WEBHOOK_URL', getenv('WELCOME_WEBHOOK_URL'));
 define('COACH_CHAT_WEBHOOK_URL', getenv('COACH_CHAT_WEBHOOK_URL'));
+define('SUGGESTIONS_WEBHOOK_URL', getenv('SUGGESTIONS_WEBHOOK_URL') ?: 'https://agencia-ia-n8n.tjo0g6.easypanel.host/webhook/emfitpro-suggestions');
 define('N8N_WEBHOOK_URL', getenv('WELCOME_WEBHOOK_URL')); // Reusamos el de bienvenida
 
 // WOMPI CONFIGURATION

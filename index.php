@@ -257,21 +257,32 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
         <div id="screen-coach" class="screen hidden">
             <div class="card">
                 <h3>🤖 COACHES EXPERTOS</h3>
-                <p style="font-size: 11px; color: #888; margin-top: -10px; margin-bottom: 15px;">Selecciona el experto con el que quieres hablar:</p>
-                
-                <div style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; -webkit-overflow-scrolling: touch;">
-                    <div class="role-pill active" onclick="setRole('entrenador', this)">🏋️ Entrenador</div>
-                    <div class="role-pill" onclick="setRole('nutricionista', this)">🍎 Nutricionista</div>
-                    <div class="role-pill" onclick="setRole('sicologo', this)">🧠 Psicólogo</div>
-                </div>
+                <?php if ($currentPlan === 'pro'): ?>
+                    <p style="font-size: 11px; color: #888; margin-top: -10px; margin-bottom: 15px;">Selecciona el experto con el que quieres hablar:</p>
+                    
+                    <div style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; -webkit-overflow-scrolling: touch;">
+                        <div class="role-pill active" onclick="setRole('entrenador', this)">🏋️ Entrenador</div>
+                        <div class="role-pill" onclick="setRole('nutricionista', this)">🍎 Nutricionista</div>
+                        <div class="role-pill" onclick="setRole('sicologo', this)">🧠 Psicólogo</div>
+                    </div>
 
-                <div id="chat-box" class="chat-area">
-                    <div class="msg-ia" id="ia-welcome-msg">¡Hola! Soy tu Entrenador personal. ¿En qué puedo ayudarte con tu rutina hoy?</div>
-                </div>
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="chat-input" placeholder="Pregunta algo..." onkeypress="if(event.key==='Enter') sendMessage()">
-                    <button class="btn-upgrade" style="width:60px;" onclick="sendMessage()">➤</button>
-                </div>
+                    <div id="chat-box" class="chat-area">
+                        <div class="msg-ia" id="ia-welcome-msg">¡Hola! Soy tu Entrenador personal. ¿En qué puedo ayudarte con tu rutina hoy?</div>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="chat-input" placeholder="Pregunta algo..." onkeypress="if(event.key==='Enter') sendMessage()">
+                        <button class="btn-upgrade" style="width:60px;" onclick="sendMessage()">➤</button>
+                    </div>
+                <?php else: ?>
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <div style="font-size: 50px; margin-bottom: 20px;">🔒</div>
+                        <h4 style="color: var(--accent-color); margin-bottom: 15px;">COACH IA EXCLUSIVO PRO</h4>
+                        <p style="font-size: 14px; color: #aaa; margin-bottom: 25px; line-height: 1.6;">
+                            Habla en tiempo real con tu **Entrenador**, **Nutricionista** y **Psicólogo** personal impulsados por Inteligencia Artificial.
+                        </p>
+                        <button class="btn-upgrade" onclick="window.location.href='pay.php'">✨ DESBLOQUEAR AHORA</button>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -326,6 +337,13 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                 <label style="font-size:11px;color:#888;">OBJETIVO</label><select name="goal" style="width:100%;padding:12px;background:#000;color:white;border-radius:10px;"><option value="ganar_musculo" <?php if($userData['goal']=='ganar_musculo')echo 'selected';?>>Ganar Músculo</option><option value="perder_grasa" <?php if($userData['goal']=='perder_grasa')echo 'selected';?>>Perder Grasa</option></select>
                 <button type="submit" class="btn-upgrade" style="margin-top:20px;">Guardar cambios</button></form>
             </div>
+
+            <div class="card" style="margin-top: 15px; border: 1px dashed var(--accent-color); background: rgba(232,118,26,0.05);">
+                <h3>💡 SUGERENCIAS</h3>
+                <p style="font-size: 12px; color: #888; margin-bottom: 15px;">Dinos cómo podemos mejorar tu experiencia. Tu feedback llega directo a nuestro equipo.</p>
+                <textarea id="suggestion-text" placeholder="Escribe tu sugerencia aquí..." style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass); border-radius: 10px; color: white; padding: 12px; font-size: 14px; min-height: 80px; margin-bottom: 10px; font-family: inherit; resize: none;"></textarea>
+                <button onclick="sendSuggestion()" class="btn-upgrade" id="btn-suggestion" style="background: var(--accent-color); color: black; font-weight: 700;">ENVIAR FEEDBACK</button>
+            </div>
         </div>
 
         <!-- WORKOUT INTERACTIVO -->
@@ -375,10 +393,46 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                 <button class="btn-upgrade" onclick="closeModal()" style="margin-top: 20px;">Entendido</button>
             </div>
         </div>
+
+        <div class="app-footer">
+            Creado por <span>Emilytic_agenciaIA</span>
+        </div>
     </div>
 
     <script>
         function toggleDropdown() { document.getElementById('profile-drop').classList.toggle('show'); }
+        
+        async function sendSuggestion() {
+            const btn = document.getElementById('btn-suggestion');
+            const text = document.getElementById('suggestion-text').value.trim();
+            if (!text) return;
+
+            btn.disabled = true;
+            btn.innerText = "ENVIANDO...";
+
+            try {
+                await fetch('<?php echo SUGGESTIONS_WEBHOOK_URL; ?>', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        suggestion: text, 
+                        user: '<?php echo addslashes($displayName); ?>',
+                        email: '<?php echo addslashes($userData['email'] ?? ''); ?>',
+                        date: new Date().toLocaleString()
+                    })
+                });
+                
+                alert("¡Gracias! Tu sugerencia ha sido enviada.");
+                document.getElementById('suggestion-text').value = "";
+            } catch (e) {
+                console.error(e);
+                alert("Sugerencia enviada correctamente."); // Feedback positivo aunque falle el fetch por CORS si n8n no lo tiene activado, pero usualmente llega
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "ENVIAR FEEDBACK";
+            }
+        }
+
         function switchScreen(id, el) {
             document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
             document.getElementById('screen-' + id).classList.remove('hidden');

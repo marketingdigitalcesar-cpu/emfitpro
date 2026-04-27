@@ -14,6 +14,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $userId = $_SESSION['user_id'];
     
+    // VALIDACIÓN DE PLAN: Solo PRO puede usar el Coach
+    if (checkUserPlan($userId) !== 'pro') {
+        echo json_encode(['message' => '### 🔒 ACCESO RESTRINGIDO\n\nEl **Coach IA** es una función exclusiva para miembros **PRO**.\n\n[Suscríbete ahora](pay.php) para desbloquear recomendaciones personalizadas de entrenamiento, nutrición y psicología deportiva.']);
+        exit;
+    }
+    
     // Obtener datos del perfil para darle contexto a la IA
     $stmt = $conn->prepare("SELECT u.name, p.weight, p.height, p.age, p.goal FROM users u LEFT JOIN user_profiles p ON u.id = p.user_id WHERE u.id = ?");
     $stmt->bind_param("i", $userId);
