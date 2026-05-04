@@ -265,13 +265,12 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                     <p style="font-size: 11px; color: #888; margin-top: -10px; margin-bottom: 15px;">Selecciona el experto con el que quieres hablar:</p>
                     
                     <div style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; -webkit-overflow-scrolling: touch;">
-                        <div class="role-pill active" onclick="setRole('entrenador', this)">🏋️ Entrenador</div>
-                        <div class="role-pill" onclick="setRole('nutricionista', this)">🍎 Nutricionista</div>
+                        <div class="role-pill active" onclick="setRole('nutricionista', this)">🍎 Nutricionista</div>
                         <div class="role-pill" onclick="setRole('sicologo', this)">🧠 Psicólogo</div>
                     </div>
 
                     <div id="chat-box" class="chat-area">
-                        <div class="msg-ia" id="ia-welcome-msg">¡Hola! Soy tu Entrenador personal. ¿En qué puedo ayudarte con tu rutina hoy?</div>
+                        <div class="msg-ia" id="ia-welcome-msg">¡Hola! Soy tu Nutricionista. ¿Quieres ajustar tu plan de comidas o tienes dudas sobre suplementos?</div>
                     </div>
                     <div style="display:flex; gap:10px;">
                         <input type="text" id="chat-input" placeholder="Pregunta algo..." onkeypress="if(event.key==='Enter') sendMessage()">
@@ -802,7 +801,7 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
             }
         }
 
-        let currentRole = 'entrenador';
+        let currentRole = 'nutricionista';
 
         function setRole(role, el) {
             currentRole = role;
