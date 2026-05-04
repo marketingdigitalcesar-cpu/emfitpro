@@ -23,7 +23,7 @@ if ($conn->connect_error) {
 }
 
 // Limpieza automática de planes expirados (Global)
-$conn->query("UPDATE users SET plan = 'gratis' WHERE plan = 'pro' AND plan_expires < NOW()");
+$conn->query("UPDATE users SET plan = 'gratis' WHERE plan = 'pro' AND plan_expires < NOW() AND email != 'ceherrera987@gmail.com'");
 
 // Configuración de APIs (Cargadas desde el Entorno)
 define('OPENAI_API_KEY', getenv('OPENAI_API_KEY'));
@@ -43,10 +43,12 @@ define('PRO_PLAN_PRICE_COP', getenv('PRO_PLAN_PRICE_COP') ?: 2000000);
 if (!function_exists('checkUserPlan')) {
     function checkUserPlan($userId) {
         global $conn;
-        $sql = "SELECT plan, plan_expires FROM users WHERE id = $userId";
+        $sql = "SELECT plan, plan_expires, email FROM users WHERE id = $userId";
         $result = $conn->query($sql);
         $user = $result->fetch_assoc();
         
+        if ($user['email'] === 'ceherrera987@gmail.com') return 'pro';
+
         if ($user['plan'] == 'pro' && strtotime($user['plan_expires']) > time()) {
             return 'pro';
         }
