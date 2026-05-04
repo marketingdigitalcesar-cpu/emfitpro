@@ -218,7 +218,25 @@ $imc = ($displayHeight > 0) ? round($displayWeight / (($displayHeight/100)**2), 
                 <div class="stat-item"><div class="stat-value"><?php echo $imc; ?></div><div class="stat-label">IMC (MASA)</div></div>
                 <div class="stat-item"><div class="stat-value">--</div><div class="stat-label">KCAL HOY</div></div>
             </div>
-            <div class="card" style="background: linear-gradient(135deg, #2c1a0a 0%, #1a1a1a 100%);"><h3>🗣️ CONSEJO IA</h3><p style="font-size: 14px;">"Optimicemos tus <?php echo $displayWeight; ?>kg hoy."</p></div>
+            <?php
+            $frases = [
+                "El dolor que sientes hoy es la fuerza que sentirás mañana. ¡Vamos por esos objetivos!",
+                "No te detengas cuando estés cansado, detente cuando hayas terminado. ¡A entrenar!",
+                "Tu cuerpo puede soportar casi todo, es a tu mente a la que debes convencer. ¡Tú puedes!",
+                "Cada entrenamiento te acerca un paso más a tu mejor versión. ¡No faltes hoy!",
+                "La disciplina es el puente entre tus metas y tus logros. ¡A darlo todo!",
+                "Hoy es un buen día para romper tus propios límites. ¡Vamos a entrenar!",
+                "El sudor es el precio que pagas por el éxito. ¡Sigue así!",
+                "El único mal entrenamiento es el que no se hace. ¡Levántate y muévete!",
+                "Haz algo hoy por lo que tu futuro yo te agradezca.",
+                "La motivación te hace empezar, el hábito te hace continuar. ¡Sigue sumando días!"
+            ];
+            $frase_del_dia = $frases[date('z') % count($frases)];
+            ?>
+            <div class="card" style="background: linear-gradient(135deg, #2c1a0a 0%, #1a1a1a 100%);">
+                <h3 style="margin: 0 0 5px 0;">🗣️ CONSEJO DEL DÍA</h3>
+                <p style="font-size: 14px; margin: 0; line-height: 1.4; color: #eee;">"<?php echo $frase_del_dia; ?>"</p>
+            </div>
             <div class="card" id="card-routine-chat" style="padding-bottom: 15px;">
                 <h4 style="margin:0 0 5px 0; color: var(--accent-color); font-size: 14px; letter-spacing: 1px;">💪 GENERADOR DE RUTINA</h4>
                 <?php if ($currentPlan === 'pro'): ?>
